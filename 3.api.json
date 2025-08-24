@@ -1,0 +1,90 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Auto-Budget Pilot API",
+    "version": "0.1.0",
+    "description": "Endpoints for ingesting CSVs, viewing pay periods, marking bills, running checklists, unlocking spending, and reconciling."
+  },
+  "paths": {
+    "/ingest/csv": {
+      "post": {
+        "summary": "Seed pp_bills from a CSV",
+        "responses": {
+          "201": {
+            "description": "Seeded"
+          }
+        }
+      }
+    },
+    "/pp/{ppNo}": {
+      "get": {
+        "summary": "Get pay period summary",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/pp/{ppNo}/bills/{billId}/paid": {
+      "post": {
+        "summary": "Mark a bill paid",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/checklist/{ppNo}/{spouse}/credit": {
+      "post": {
+        "summary": "Mark credit bills complete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/checklist/{ppNo}/{spouse}/pots": {
+      "post": {
+        "summary": "Mark pots verified",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/unlock/{spouse}": {
+      "post": {
+        "summary": "Attempt an unlock ($100)",
+        "responses": {
+          "200": {
+            "description": "Unlocked"
+          }
+        }
+      }
+    },
+    "/debts/snowball": {
+      "get": {
+        "summary": "Snowball order and countdown",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ops/reconcile/run": {
+      "post": {
+        "summary": "Run Plaid reconciliation now",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+__pypackages__/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.pytest_cache/
+coverage.xml
+.coverage
+.htmlcov/
+
+# Environment / secrets
+.env
+.env.*
+secrets.*
+*.pem
+
+# Databases
+autobudget.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Node (if any)
+node_modules/
+
+# Misc
+*.bak
+*.swp
+
+# Alembic migration.ini (local copies)
+alembic.ini
+
+# Ignore local Docker files
+docker-compose.override.yml
