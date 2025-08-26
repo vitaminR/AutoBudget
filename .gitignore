@@ -44,6 +44,7 @@ coverage.xml
 .env.*
 secrets.*
 *.pem
+*-key.json
 
 # Databases
 autobudget.db
@@ -54,6 +55,7 @@ autobudget.db
 # Logs
 *.log
 logs/
+*.pid
 
 # Jupyter
 .ipynb_checkpoints/
@@ -75,3 +77,9 @@ alembic.ini
 
 # Ignore local Docker files
 docker-compose.override.yml
+
+# Budget JSON files (local sensitive/project config)
+budget.json
+budget-*.json
+*.budget.json
+*.budget-*.json

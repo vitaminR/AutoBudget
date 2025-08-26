@@ -3,10 +3,8 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-// Helper to format dates
 const formatDate = (dateString) => {
   const options = { month: 'short', day: 'numeric' };
-  // Add T00:00:00 to ensure the date is parsed as local time, not UTC
   return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', options);
 };
 
@@ -17,7 +15,6 @@ function App() {
   const [loading, setLoading] = useState({ periods: false, bills: false });
   const [error, setError] = useState(null);
 
-  // Fetch Pay Periods
   useEffect(() => {
     setLoading(prev => ({ ...prev, periods: true }));
     axios.get(`${API_BASE_URL}/pay-periods`)
@@ -36,40 +33,38 @@ function App() {
       });
   }, []);
 
-  // Fetch Bills for Selected Pay Period
-  const fetchBills = useCallback(() => {
+  useEffect(() => {
     if (!selectedPeriod) return;
-    setLoading(prev => ({ ...prev, bills: true }));
-    axios.get(`${API_BASE_URL}/pay-periods/${selectedPeriod}`)
-      .then(response => {
-        setBills(response.data);
-      })
-      .catch(err => {
-        console.error(`Error fetching bills for period ${selectedPeriod}:`, err);
-        setError(`Failed to load bills for pay period ${selectedPeriod}.`);
-      })
-      .finally(() => {
-        setLoading(prev => ({ ...prev, bills: false }));
-      });
+
+    const fetchBills = () => {
+      setLoading(prev => ({ ...prev, bills: true }));
+      axios.get(`${API_BASE_URL}/pay-periods/${selectedPeriod}/bills`)
+        .then(response => {
+          setBills(response.data);
+        })
+        .catch(err => {
+          console.error(`Error fetching bills for period ${selectedPeriod}:`, err);
+          setBills([]); // Clear bills on error to prevent showing stale data
+          setError(`Failed to load bills for pay period ${selectedPeriod}.`);
+        })
+        .finally(() => {
+          setLoading(prev => ({ ...prev, bills: false }));
+        });
+    };
+
+    fetchBills();
   }, [selectedPeriod]);
 
-  useEffect(() => {
-    fetchBills();
-  }, [fetchBills]);
-
-  // Handler for toggling the paid status
   const handleTogglePaid = (billId) => {
     const originalBills = [...bills];
-    // Optimistically update the UI
     setBills(prevBills =>
       prevBills.map(b => b.id === billId ? { ...b, paid: !b.paid } : b)
     );
 
-    axios.post(`${API_BASE_URL}/bills/${bill_id}/toggle-paid`)
+    axios.post(`${API_BASE_URL}/bills/${billId}/toggle-paid`)
       .catch(err => {
         console.error(`Error toggling paid status for bill ${billId}:`, err);
         setError('Failed to update bill status. Reverting change.');
-        // Revert the UI change on error
         setBills(originalBills);
       });
   };

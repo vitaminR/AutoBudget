@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+*.o
+*.exe
+build/
+dist/
+
+# Logs and environment files
+*.log
+.env
+*.env.local
+
+# Git / System files
+.git/
+.DS_Store

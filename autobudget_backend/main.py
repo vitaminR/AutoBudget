@@ -1,8 +1,12 @@
+
 import os
+import logging
+from pathlib import Path
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict
 from typing import List
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, Date
 from sqlalchemy.orm import sessionmaker, Session
@@ -10,8 +14,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import date, timedelta
 
 # --- Configuration ---
-DATABASE_URL = "sqlite:///./autobudget.db"
-CSV_FILE_PATH = "/mnt/c/Users/nymil/Codepro/AutoBudget/5.Tidy_Bills_AugNov_with_PPs.csv"
+# Resolve project root and use absolute DB/CSV paths to avoid path confusion when reloader/WSL changes cwd
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{ROOT_DIR / 'autobudget.db'}")
+CSV_FILE_PATH = os.getenv("CSV_FILE_PATH", str(ROOT_DIR / "data/5.Tidy_Bills_AugNov_with_PPs.csv"))
+PAY_PERIOD_ANCHOR_DATE = date.fromisoformat(os.getenv("PAY_PERIOD_ANCHOR_DATE", "2025-08-04"))
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("autobudget")
 
 # --- SQLAlchemy Setup ---
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -48,8 +59,8 @@ class Bill(BaseModel):
     PP: int
     paid: bool
 
-    class Config:
-        orm_mode = True
+    # Pydantic v2: use model_config to replace the old `orm_mode`
+    model_config = ConfigDict(from_attributes=True)
 
 class PayPeriod(BaseModel):
     id: int
@@ -57,8 +68,7 @@ class PayPeriod(BaseModel):
     start_date: date
     end_date: date
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Application Setup ---
 app = FastAPI(
@@ -66,14 +76,7 @@ app = FastAPI(
     description="API for managing budget data with a database.",
     version="0.3.0",
 )
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 # --- Database Dependency ---
 def get_db():
@@ -83,10 +86,16 @@ def get_db():
     finally:
         db.close()
 
-# --- Application Events ---
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    # Log full exception for diagnostics but return a friendly 503 to clients
+    logger.exception("Unhandled error processing request: %s %s", request.method, request.url)
+    return JSONResponse(status_code=503, content={"detail": "Server error, please try again later."})
 
 # --- API Endpoints ---
 @app.get("/")
@@ -100,33 +109,22 @@ def ingest_csv_data(db: Session = Depends(get_db)):
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail=f"CSV file not found at {CSV_FILE_PATH}")
 
-    # Clear existing data
     db.query(BillDB).delete()
     db.query(PayPeriodDB).delete()
 
-    # Insert new bill data
     for _, row in df.iterrows():
         bill = BillDB(**row.to_dict(), paid=False)
         db.add(bill)
 
-    # Generate and insert Pay Period data
     unique_pps = sorted(df["PP"].unique())
-    # Define a plausible start date for the first pay period (PP 17)
-    # Based on due dates in CSV, let's assume it starts Sunday, Aug 4th, 2024
-    # Note: The year is a guess, but the day/month align with the CSV.
-    current_start_date = date(2024, 8, 4)
 
     for pp_num in unique_pps:
-        end_date = current_start_date + timedelta(days=13)
-        pp = PayPeriodDB(
-            pp_number=pp_num,
-            start_date=current_start_date,
-            end_date=end_date
-        )
-        db.add(pp)
-        # The next pay period starts the day after the current one ends
-        current_start_date = end_date + timedelta(days=1)
-
+        offset = pp_num - unique_pps[0]
+        start_date = PAY_PERIOD_ANCHOR_DATE + timedelta(weeks=2 * offset)
+        end_date = start_date + timedelta(days=13)
+        pp_entry = PayPeriodDB(pp_number=pp_num, start_date=start_date, end_date=end_date)
+        db.add(pp_entry)
+    
     db.commit()
     return {"message": f"Successfully ingested {len(df)} bills and {len(unique_pps)} pay periods."}
 
@@ -134,12 +132,12 @@ def ingest_csv_data(db: Session = Depends(get_db)):
 def get_pay_periods(db: Session = Depends(get_db)):
     return db.query(PayPeriodDB).order_by(PayPeriodDB.pp_number).all()
 
-@app.get("/api/pay-periods/{period_number}", response_model=List[Bill])
+@app.get("/api/pay-periods/{period_number}/bills", response_model=List[Bill])
 def get_bills_for_pay_period(period_number: int, db: Session = Depends(get_db)):
-    pp_bills = db.query(BillDB).filter(BillDB.PP == period_number).order_by(BillDB.DueDay).all()
-    if not pp_bills:
+    bills = db.query(BillDB).filter(BillDB.PP == period_number).order_by(BillDB.DueDay).all()
+    if not bills:
         raise HTTPException(status_code=404, detail=f"No bills found for pay period {period_number}.")
-    return pp_bills
+    return bills
 
 @app.post("/api/bills/{bill_id}/toggle-paid", response_model=Bill)
 def toggle_bill_paid_status(bill_id: int, db: Session = Depends(get_db)):

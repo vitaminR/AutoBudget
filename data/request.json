@@ -1,0 +1,6 @@
+{
+  "contents": {
+    "role": "user",
+    "parts": { "text": "This request is now using the paid Vertex AI service. Confirm." }
+  }
+}
