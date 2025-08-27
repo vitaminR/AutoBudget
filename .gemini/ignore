@@ -1,18 +1,34 @@
 # Dependencies
+
 node_modules/
 vendor/
 
 # Build artifacts
-*.o
-*.exe
+
+_.o
+_.exe
 build/
 dist/
 
 # Logs and environment files
-*.log
+
+_.log
 .env
-*.env.local
+_.env.local
 
 # Git / System files
+
 .git/
 .DS_Store
+
+secrets/
+autobudget.db
+_.sqlite_
+\*.budget.json
+project_snapshot.md
+
+# Additional ignores for workspace hygiene
+
+dist/
+build/
+\*.key.json

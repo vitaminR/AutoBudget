@@ -1,0 +1,17 @@
+{
+  "model": "gemini-2.5-pro",
+  "temperature": 0.2,
+  "max_output_tokens": 800,
+  "system_instruction_files": ["GEMINI.md", "AGENT_GUIDE.md"],
+  "blocked_paths": [
+    "node_modules",
+    "dist",
+    "build",
+    "autobudget.db",
+    "secrets",
+    "*.key.json",
+    "project_snapshot.md"
+  ],
+  "rate_limits": { "rpm": 8, "tpm": 60000 },
+  "summarize_every_n_edits": 12
+}

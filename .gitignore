@@ -83,3 +83,9 @@ budget.json
 budget-*.json
 *.budget.json
 *.budget-*.json
+
+secrets/
+autobudget.db
+*.sqlite*
+*.budget.json
+project_snapshot.md
