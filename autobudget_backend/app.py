@@ -9,7 +9,8 @@ Endpoints:
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Any, Dict, List, Optional
 import io, csv
@@ -27,9 +28,25 @@ from autobudget_backend.services.snowball import compute as compute_snowball
 from autobudget_backend.services.unlocks import suggest as suggest_unlocks
 from autobudget_backend.services.reconcile import run as run_reconcile
 from autobudget_backend.services.pots import summarize_payperiod
+from autobudget_backend import models
+from autobudget_backend.db import SessionLocal, engine, init_db
+
+try:
+    init_db()
+except Exception as e:
+    print(f"Error initializing database: {e}")
 
 
 app = FastAPI(title="AutoBudget API (lite)", version="0.1.0")
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 # allow CRA dev host
 app.add_middleware(
@@ -47,8 +64,8 @@ def root():
 
 
 @app.post("/ingest/bills")
-async def ingest_bills(file: UploadFile = File(...)) -> Dict[str, int]:
-    """Count CSV data rows; no persistence.
+async def ingest_bills(file: UploadFile = File(...), db: Session = Depends(get_db)) -> Dict[str, int]:
+    """Parse CSV data and store it in the database.
 
     Returns ingested_rows >= 1 if at least one data row exists.
     """
@@ -63,10 +80,60 @@ async def ingest_bills(file: UploadFile = File(...)) -> Dict[str, int]:
             dialect, has_header = csv.excel, True
         reader = csv.reader(io.StringIO(text), dialect)
         rows = list(reader)
-        data_rows = rows[1:] if (has_header and rows) else rows
-        return {"ingested_rows": max(0, len([r for r in data_rows if any(cell.strip() for cell in r)]))}
+        if has_header:
+            header = rows[0]
+            data_rows = rows[1:]
+            # Map CSV headers to model fields
+            header_map = {h.strip().lower(): h.strip() for h in header}
+            name_col = header_map.get("name")
+            amount_col = header_map.get("amount")
+            dueday_col = header_map.get("dueday")
+            class_col = header_map.get("class")
+            pp_col = header_map.get("pp")
+        else:
+            # Assume fixed order if no header
+            data_rows = rows
+            name_col, amount_col, dueday_col, class_col, pp_col = "Name", "Amount", "DueDay", "Class", "PP"
+
+        ingested_count = 0
+        for row_data in data_rows:
+            if any(cell.strip() for cell in row_data):
+                try:
+                    bill_data = {
+                        "name": row_data[header.index(name_col)],
+                        "amount": float(row_data[header.index(amount_col)]),
+                        "due_day": int(row_data[header.index(dueday_col)]),
+                        "bill_class": row_data[header.index(class_col)],
+                        "pp": int(row_data[header.index(pp_col)]),
+                    }
+                    db_bill = models.Bill(**bill_data)
+                    db.add(db_bill)
+                    ingested_count += 1
+                except (ValueError, IndexError) as e:
+                    print(f"Skipping row due to parsing error: {e}")
+        db.commit()
+        return {"ingested_rows": ingested_count}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid CSV: {e}")
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Invalid CSV or database error: {e}")
+
+
+@app.get("/bills")
+def get_bills(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Retrieve all bills from the database."""
+    bills = db.query(models.Bill).all()
+    return [
+        {
+            "id": bill.id,
+            "name": bill.name,
+            "amount": bill.amount,
+            "due_day": bill.due_day,
+            "bill_class": bill.bill_class,
+            "pp": bill.pp,
+            "paid": bill.paid,
+        }
+        for bill in bills
+    ]
 
 
 @app.get("/payperiods/{pp_id}/summary")
@@ -78,27 +145,37 @@ def payperiod_summary(pp_id: int) -> Dict[str, Any]:
 
 
 @app.get("/debts/snowball")
-def debts_snowball() -> List[Dict[str, Any]]:
+def debts_snowball(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
     """Return a simple snowball ordering with payoff ETA in days."""
-    sample_debts = [
-        {"name": "Card A", "balance": 1200.0, "apr": 22.9},
-        {"name": "Card B", "balance": 600.0, "apr": 19.9},
-        {"name": "Loan C", "balance": 2400.0, "apr": 7.5},
+    debts = db.query(models.Bill).filter(models.Bill.bill_class == 'Credit').all()
+    debt_list = [
+        {"name": debt.name, "balance": debt.amount, "apr": 0} for debt in debts
     ]
-    return compute_snowball(sample_debts)
+    return compute_snowball(debt_list)
 
 
 @app.get("/unlocks")
-def get_unlocks() -> List[Dict[str, Any]]:
+def get_unlocks(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
     """Return suggested unlock actions with impact and prerequisites."""
-    return suggest_unlocks()
+    unlocks = suggest_unlocks()
+    small_bills = db.query(models.Bill).filter(models.Bill.amount < 100, models.Bill.paid == False).all()
+    for bill in small_bills:
+        unlocks.append(
+            {
+                "action": f"Pay off {bill.name}",
+                "impact_score": 0.7,
+                "prereqs": [f"Budget allows for ${bill.amount} payment"],
+            }
+        )
+    return unlocks
 
 
 @app.post("/reconcile")
-def reconcile(payload: Dict[str, Any]) -> Dict[str, Any]:
+def reconcile(payload: Dict[str, Any], db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Return matched/unmatched for provided transactions without touching a DB."""
     txns = payload.get("transactions") or []
-    return run_reconcile(txns)
+    bills = db.query(models.Bill).all()
+    return run_reconcile(txns, bills)
 
 
 # --- COMPAT: Compatibility aliases for current frontend (/api/*)
@@ -137,42 +214,30 @@ def _compat_list_pp() -> List[Dict[str, Any]]:
 
 
 @app.get("/api/pay-periods/{pp}/bills")  # COMPAT
-def _compat_pp_bills(pp: int) -> List[Dict[str, Any]]:
-    # Tiny deterministic rows for UI without a DB, with dev-mode persistence of 'paid' flags
-    rows = [
-        {"id": 1, "Name": "Rent", "Amount": 1800.0, "DueDay": 1, "Class": "Housing", "PP": pp, "paid": False},
-        {"id": 2, "Name": "Electric", "Amount": 150.0, "DueDay": 3, "Class": "Utilities", "PP": pp, "paid": False},
+def _compat_pp_bills(pp: int, db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    bills = db.query(models.Bill).filter(models.Bill.pp == pp).all()
+    return [
+        {
+            "id": bill.id,
+            "Name": bill.name,
+            "Amount": bill.amount,
+            "DueDay": bill.due_day,
+            "Class": bill.bill_class,
+            "PP": bill.pp,
+            "paid": bill.paid,
+        }
+        for bill in bills
     ]
-
-    # Apply persisted paid state per-month (shared across PPs within the same month)
-    month_key = _pp_month_key(pp)
-    state = _load_bills_state()
-    for r in rows:
-        key = f"{month_key}:{r['id']}"
-        if key in state:
-            r["paid"] = bool(state[key])
-    return rows
 
 
 @app.post("/api/bills/{bill_id}/toggle-paid")  # COMPAT
-def _compat_toggle(bill_id: int, pp: Optional[int] = None, month: Optional[str] = None) -> Dict[str, Any]:
-    # Toggle and persist paid state (file-backed dev store), scoped by month
-    state = _load_bills_state()
-    # Derive month scope
-    if month and len(month) >= 7:  # expect YYYY-MM
-        month_key = month[:7]
-    elif pp is not None:
-        month_key = _pp_month_key(pp)
-    else:
-        # Fallback: use a global bucket (legacy behavior)
-        month_key = "global"
-
-    key = f"{month_key}:{bill_id}"
-    current = bool(state.get(key, False))
-    new_val = not current
-    state[key] = new_val
-    _save_bills_state(state)
-    return {"ok": True, "id": bill_id, "paid": new_val, "scope": month_key}
+def _compat_toggle(bill_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    bill = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    bill.paid = not bill.paid
+    db.commit()
+    return {"ok": True, "id": bill.id, "paid": bill.paid}
 
 # --- COMPAT extras so /api/* works for MVP endpoints too
 @app.get("/api/debts/snowball")
