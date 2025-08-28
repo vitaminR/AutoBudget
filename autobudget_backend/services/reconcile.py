@@ -15,9 +15,13 @@ def run(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
     matched: List[Dict[str, Any]] = []
     unmatched: List[Dict[str, Any]] = []
     for t in transactions or []:
-        memo = str(t.get("memo", "")).lower()
+        memo = str(t.get("memo", "")).strip().lower()
         if ("rent" in memo) or ("grocer" in memo):
             matched.append(t)
         else:
             unmatched.append(t)
-    return {"matched": matched, "unmatched": unmatched}
+    result: Dict[str, Any] = {"matched": matched, "unmatched": unmatched}
+    # UC-006 acceptance: also expose counts for tests/automation
+    result["matched_count"] = len(matched)
+    result["unmatched_count"] = len(unmatched)
+    return result

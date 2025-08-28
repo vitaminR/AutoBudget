@@ -3,11 +3,14 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-# Import the FastAPI app
+# Import the FastAPI app (prefer MVP DB-free app)
 try:
-    from autobudget_backend.main import app
-except Exception:  # fallback if package import fails
-    pytest.skip("Backend app not importable", allow_module_level=True)
+    from autobudget_backend.app import app  # type: ignore
+except Exception:
+    try:
+        from autobudget_backend.main import app  # type: ignore
+    except Exception:  # fallback if package import fails
+        pytest.skip("Backend app not importable", allow_module_level=True)
 
 client = TestClient(app)
 
@@ -28,7 +31,6 @@ def test_uc001_ingest_bills(tmp_path, monkeypatch):
 
 
 @pytest.mark.order(2)
-@pytest.mark.xfail(reason="/payperiods/{id}/summary not implemented yet")
 def test_uc002_summary_shape():
     r = client.get("/payperiods/17/summary")
     assert r.status_code == 200
@@ -38,7 +40,6 @@ def test_uc002_summary_shape():
 
 
 @pytest.mark.order(3)
-@pytest.mark.xfail(reason="pots keys not implemented yet")
 def test_uc003_pots_keys():
     r = client.get("/payperiods/17/summary")
     assert r.status_code == 200
@@ -49,7 +50,6 @@ def test_uc003_pots_keys():
 
 
 @pytest.mark.order(4)
-@pytest.mark.xfail(reason="/debts/snowball not implemented yet")
 def test_uc004_snowball_sorted():
     r = client.get("/debts/snowball")
     assert r.status_code == 200
@@ -60,7 +60,6 @@ def test_uc004_snowball_sorted():
 
 
 @pytest.mark.order(5)
-@pytest.mark.xfail(reason="/unlocks not implemented yet")
 def test_uc005_unlocks_shape():
     r = client.get("/unlocks")
     assert r.status_code == 200
@@ -70,7 +69,6 @@ def test_uc005_unlocks_shape():
 
 
 @pytest.mark.order(6)
-@pytest.mark.xfail(reason="/reconcile not implemented yet")
 def test_uc006_reconcile_counts():
     payload = {"transactions": [{"date": "2025-08-10", "amount": -12.34, "memo": "Coffee"}]}
     r = client.post("/reconcile", json=payload)

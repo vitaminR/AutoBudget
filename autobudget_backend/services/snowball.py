@@ -15,13 +15,19 @@ def compute(debts: List[Dict[str, Any]], monthly_payment: float = 300.0) -> List
     """
     cleaned = []
     for d in debts:
-        bal = float(d.get("balance", 0) or 0)
+        # Normalize balance; guard against negatives/non-finite
+        try:
+            bal = float(d.get("balance", 0) or 0)
+        except (TypeError, ValueError):
+            bal = 0.0
+        if not math.isfinite(bal) or bal < 0:
+            bal = 0.0
         eta_months = math.ceil(bal / max(1.0, monthly_payment))
         eta_days = int(eta_months * 30)
         cleaned.append({
             "name": d.get("name", ""),
             "balance": bal,
-            "apr": float(d.get("apr", 0) or 0),
+            "apr": (float(d.get("apr", 0) or 0) if isinstance(d.get("apr", 0), (int, float, str)) else 0.0),
             "payoff_eta_days": eta_days,
         })
     return sorted(cleaned, key=lambda x: x["balance"])

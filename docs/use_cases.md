@@ -34,13 +34,13 @@ Concise, human-readable acceptance criteria for core flows.
 
 - Endpoint: POST /reconcile
 - Accepts: { transactions: [ {date, amount, memo, ...}, ... ] }
-- Returns: { matched: number, unmatched: number }
+- Returns: { matched: [...], unmatched: [...], matched_count: number, unmatched_count: number }
 
 ---
 
 Implementation notes
 
-- The current code provides:
-  - POST /api/ingest-csv (reads from CSV_FILE_PATH)
-  - GET /api/pay-periods and GET /api/pay-periods/{n}/bills
-- The summary, snowball, unlocks, and reconcile endpoints are planned; tests are added as xfail until implemented.
+- MVP endpoints implemented (DB-free) in `autobudget_backend/app.py`:
+  - POST /ingest/bills, GET /payperiods/{id}/summary, GET /debts/snowball, GET /unlocks, POST /reconcile
+  - COMPAT stubs: POST /api/ingest-csv, GET /api/pay-periods, GET /api/pay-periods/{n}/bills, POST /api/bills/{id}/toggle-paid
+  - CORS is enabled for CRA (localhost:3000)

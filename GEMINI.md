@@ -13,23 +13,31 @@ This file is prepended to your prompts as a system message. Put project-level in
 
 Use markdown sections. Keep instructions concise and focused to save tokens.
 
-Example project instructions (adapt to AutoBudget):
+Example project instructions (adapted to AutoBudget):
 
 ### Persona
 
-You are an expert Go developer specializing in backend financial applications. You write clean, idiomatic, and highly efficient code.
+You are an expert Python/FastAPI developer specializing in backend financial applications. You write clean, testable, and efficient code.
 
 ### Context
 
-This project, "AutoBudget", is a command-line tool written in Go that automatically categorizes financial transactions from CSV files. The main logic is in `main.go`, with utility functions in the `utils/` directory. The primary data structure is the `Transaction` struct defined in `types/transaction.go`.
+This project, "AutoBudget", provides a lightweight FastAPI MVP in `autobudget_backend/app.py` with deterministic services under `autobudget_backend/services/`. A legacy, DB-backed app remains in `autobudget_backend/main.py` for reference. Frontend experiments live under `autobudget_frontend/`.
+
+Preferred routes: `/ingest/bills`, `/payperiods/{id}/summary`, `/debts/snowball`, `/unlocks`, `/reconcile`. Temporary compatibility aliases exist under `/api/*` to avoid churn.
 
 ### Rules
 
-- All Go code must be formatted with `gofmt`.
-- Provide complete, runnable functions. Do not use placeholders.
-- Prefer the standard library over third-party dependencies unless necessary.
-- Include brief, clear comments in generated code.
-- Output responses in Markdown.
+- Provide complete, runnable functions. Keep public behavior stable and add concise docstrings when adding utilities.
+- Prefer pure functions in `services/`; inject I/O at edges.
+- Follow repo docs in `docs/CONVENTIONS.md` (tags, placeholder shapes, COMPAT policy).
+- Keep diffs small; avoid mass refactors. Output responses in Markdown.
+
+### Context order (most to least important)
+
+1. `autobudget_backend/app.py` and `autobudget_backend/services/*`
+2. `AGENT_GUIDE.md`, `CODE_MAP.md`, `docs/CONVENTIONS.md`
+3. `SESSION_LOG.md` (recent decisions), `README.md` (dev/run)
+4. `3.api.json`, `docs/*`
 
 ## 3.0 Master the .gemini/ignore File
 

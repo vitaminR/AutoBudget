@@ -1,5 +1,5 @@
 # Python
-.venv/
+/.venv/
 __pycache__/
 *.pyc
 
@@ -17,7 +17,8 @@ __pycache__/
 *.pyd
 
 # Virtual environments
-.venv/
+/.venv/
+/autobudget_backend/.venv/
 venv/
 env/
 ENV/
@@ -42,6 +43,7 @@ coverage.xml
 # Environment / secrets
 .env
 .env.*
+secrets/
 secrets.*
 *.pem
 *-key.json
@@ -56,6 +58,8 @@ autobudget.db
 *.log
 logs/
 *.pid
+.devlogs/
+.devdata/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -84,8 +88,5 @@ budget-*.json
 *.budget.json
 *.budget-*.json
 
-secrets/
-autobudget.db
-*.sqlite*
-*.budget.json
+# Project snapshot artifacts
 project_snapshot.md

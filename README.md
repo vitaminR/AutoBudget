@@ -15,7 +15,7 @@ This repo defines the **Auto-Budget Pilot Plan**, instructions, API contracts, a
    - Contains §1–§10 (principles, financial situation, pots, tech stack, data model, flows, user stories, cost, risks, next steps).
    - Includes **PP-Negative Rule**, bill pay fields, security/observability, gamification milestone story.
 
-3. **3.api.json**
+3. **data/3.api.json**
 
    - OpenAPI spec v0.1 for FastAPI backend.
    - Endpoints for ingesting bills, pay period summaries, marking bills paid, checklists, unlocks, snowball view, and reconciliation.
@@ -39,9 +39,34 @@ This repo defines the **Auto-Budget Pilot Plan**, instructions, API contracts, a
 
 - **Assistant**: Uses (1) + (2) for guidance.
 - **File Search**: Ingests (2), (4), (5) for context and data.
-- **API**: Built according to (3), backed by SQLite/Postgres.
+- **API**: Built according to (data/3), backed by SQLite/Postgres.
 - **Backend Repo** (later): Implements logic from (2) + (4) using models from (3).
 
 ## 🧩 Next
 
 - Add DB backend repo when ready (SQLite → Postgres).
+
+## 🛠️ Dev
+
+Local one-command startup (backend + frontend with waits/logs):
+
+- Windows PowerShell:
+  - `./scripts/dev.ps1`
+- WSL/Linux:
+  - `bash scripts/dev.sh`
+
+Notes:
+
+- Backend starts on <http://127.0.0.1:8000> (FastAPI/uvicorn).
+- Frontend starts on <http://127.0.0.1:3000> (if `autobudget_frontend/` exists and npm is available).
+- Logs are in `.devlogs/{backend.log,frontend.log}`; Ctrl+C stops both services.
+
+See also: `docs/CONVENTIONS.md` for tags (TODO/FIXME/FUTURE/PLACEHOLDER/COMPAT) and placeholder response shape.
+
+## ⚡ Quickstart
+
+Backend (MVP, DB-free): starts on <http://127.0.0.1:8000>
+
+- Use the one-command startup above, or run the backend directly via the VS Code Python interpreter targeting `autobudget_backend/app.py` with uvicorn.
+- Preferred routes: `/`, `/ingest/bills`, `/payperiods/{id}/summary`, `/debts/snowball`, `/unlocks`, `/reconcile`.
+- Temporary compatibility: `/api/pay-periods`, `/api/pay-periods/{n}/bills`, `/api/ingest-csv`, `/api/bills/{id}/toggle-paid` (placeholders tagged COMPAT/PLACEHOLDER in the code). These will be removed once the frontend migrates.

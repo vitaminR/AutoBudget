@@ -35,7 +35,7 @@ EXCLUDE_DIRS = {
     "node_modules", ".git", ".venv", "venv", "env",
     ".pytest_cache", ".mypy_cache", ".cache", "coverage",
     "dist", "build", ".next", "out", "target", "bin", "obj",
-    ".gemini", ".vscode", "secrets", "db", "systemInstructions_files", "__pycache__"
+    ".gemini", ".vscode", "secrets", "db", "systemInstructions_files", "__pycache__", ".devlogs"
 }
 BINARY_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".webp", ".pdf", ".zip", ".tar", ".gz", ".tgz", ".exe", ".dll", ".so", ".class", ".jar", ".woff", ".woff2", ".eot", ".ttf", ".pyc", ".pyo", ".pyd", ".wasm"}
 LOCKFILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml"}
@@ -81,6 +81,9 @@ def is_sensitive_file(p: Path, text_sample: str | None = None) -> bool:
     for pat in SKIP_GLOBS:
         if fnmatch.fnmatch(p.name, pat):
             return True
+    # Any JSON file with "key" in the name is sensitive
+    if p.suffix.lower() == ".json" and "key" in p.name.lower():
+        return True
     # If it's a JSON that looks like a Google service account, skip
     if text_sample and p.suffix.lower() == ".json":
         if '"type"' in text_sample and 'service_account' in text_sample:
@@ -140,7 +143,11 @@ def walk_files(root: Path):
         # filter out excluded dirs in-place so walk won't descend
         dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
         for fn in filenames:
-            files.append(Path(dirpath) / fn)
+            p = Path(dirpath) / fn
+            # Skip snapshot output itself
+            if p.resolve() == OUT.resolve():
+                continue
+            files.append(p)
     return sorted(files)
 
 
@@ -157,8 +164,8 @@ def build_tree_section(files, root: Path) -> str:
     root_files = [f.name for f in files if f.parent == root and not is_binary_path(f)]
     for rf in sorted(root_files):
         tree.append(f"  - {rf}")
-    # list top-level directories
-    top_dirs = sorted({p.parts[0] for p in {f.relative_to(root) for f in files if f.relative_to(root).parts}})
+    # list top-level directories (exclude files at repo root)
+    top_dirs = sorted({p.parts[0] for p in {f.relative_to(root) for f in files} if len(p.parts) > 1})
     for d in top_dirs:
         if d == '.':
             continue
@@ -222,8 +229,8 @@ def main():
             rel = f.relative_to(ROOT)
             # Special case: lockfiles -> summary/omit
             if f.name == "package-lock.json":
-                out.write(f"## ./{rel}\n````\n")
-                out.write(summarize_package_lock(f) + "\n````")
+                out.write(f"## ./{rel}\n```\n")
+                out.write(summarize_package_lock(f) + "\n```")
                 out.write("\n\n")
                 continue
             if f.name in {"yarn.lock", "pnpm-lock.yaml"}:
@@ -245,13 +252,13 @@ def main():
                 except Exception:
                     sample_text = ""
             if is_sensitive_file(f, sample_text):
-                out.write(f"## ./{rel}\n```\n[sensitive content omitted]\n````\n\n")
+                out.write(f"## ./{rel}\n```\n[sensitive content omitted]\n```\n\n")
                 continue
             if size > MAX_BYTES:
                 text, truncated = read_text_head(f, MAX_LINES)
                 text, _ = scrub_secrets(text)
                 out.write(f"## ./{rel}\n```\n" + text)
-                out.write("\n... (truncated)\n````")
+                out.write("\n... (truncated)\n```")
                 out.write("\n\n")
                 continue
             # Small text file -> include full or truncated by lines
@@ -260,7 +267,7 @@ def main():
             out.write(f"## ./{rel}\n```\n" + text)
             if truncated:
                 out.write("\n... (truncated)")
-            out.write("\n````\n\n")
+            out.write("\n```\n\n")
 
     print(f"Snapshot written to: {OUT}")
 

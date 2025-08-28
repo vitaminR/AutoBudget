@@ -1,3 +1,7 @@
+"""LEGACY: DB-backed FastAPI app kept for reference.
+
+Prefer `autobudget_backend/app.py` for the current MVP (DB-free) endpoints.
+"""
 
 import os
 import logging

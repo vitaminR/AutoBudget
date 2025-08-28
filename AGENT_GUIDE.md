@@ -24,10 +24,19 @@ Concise operating guide for agents. Keep loops tight and changes verifiable.
 ## Done criteria
 
 - Pytest green for UC-001..UC-006 (from docs/use_cases.md)
-- Smoke GETs return HTTP 200 (/, /api/pay-periods, /api/pay-periods/{n}/bills)
+- Smoke endpoints return HTTP 200:
+  - GET /
+  - GET /payperiods/{id}/summary
+  - GET /debts/snowball
+  - GET /unlocks
+  - POST /reconcile
+  - COMPAT only: /api/pay-periods, /api/pay-periods/{n}/bills
+
+Note: Prefer the non-/api MVP routes; /api/\* aliases are temporary COMPAT stubs.
 
 ## Repo pointers
 
-- Backend: `autobudget_backend/main.py` (FastAPI)
-- Data seed/inspect: `scripts/ingest_data.py`, `scripts/inspect_db.py`
+- Backend entrypoint (MVP, DB-free): `autobudget_backend/app.py`
+- Legacy DB-backed app (kept for reference): `autobudget_backend/main.py`
+- Data seed/inspect (legacy flow): `scripts/ingest_data.py`, `scripts/inspect_db.py`
 - Keep `project_snapshot.md` lean (no binaries, no lockfile dumps)
