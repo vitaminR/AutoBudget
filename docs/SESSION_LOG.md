@@ -9,3 +9,13 @@
   - Verification: After revert, working tree was reset to HEAD and untracked files removed with `git clean -fd`.
 
 This entry documents the revert performed to restore repository hygiene. Future agent edits should follow the project's AGENT_GUIDE and include incremental changes with SESSION_LOG entries before committing.
+
+- [2025-08-29] Frontend improvements (Navbar, StatusDisplay, Dashboard placeholders).
+  - Files added:
+    - `autobudget_frontend/src/components/Navbar.jsx` — simple navbar with Dashboard and Bills links.
+    - `autobudget_frontend/src/components/StatusDisplay.jsx` — centralized loading spinner and error alert component.
+  - Files modified:
+    - `autobudget_frontend/src/App.js` — imports and renders `Navbar` on all pages.
+    - `autobudget_frontend/src/pages/Bills.js` — uses `StatusDisplay` for loading/error states; existing logic preserved.
+    - `autobudget_frontend/src/pages/Dashboard.jsx` — added three placeholder cards: Total Monthly Bills, Next Bill Due, Accounts Reconciled.
+  - Scope: frontend-only changes and this single SESSION_LOG entry were committed to follow the project's strict rules for agent edits.

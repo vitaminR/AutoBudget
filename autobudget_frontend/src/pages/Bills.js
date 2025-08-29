@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import StatusDisplay from "../components/StatusDisplay";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -93,7 +94,7 @@ const Bills = () => {
             <div className="card-body">
               <h5 className="card-title">Select Pay Period</h5>
               {loading.periods ? (
-                <p>Loading periods...</p>
+                <StatusDisplay loading={true} />
               ) : (
                 <select
                   className="form-select"
@@ -115,9 +116,8 @@ const Bills = () => {
 
         <div className="col-lg-8">
           <h3>Bills for Pay Period {selectedPeriod}</h3>
-          {loading.bills ? (
-            <p>Loading bills...</p>
-          ) : (
+          <StatusDisplay loading={loading.bills} error={error} onDismiss={() => setError(null)} />
+          {!loading.bills && (
             <div className="table-responsive">
               <table className="table table-striped table-hover">
                 <thead className="thead-dark">
@@ -182,7 +182,7 @@ const Bills = () => {
             </div>
           )}
         </div>
-      </div>
+  </div>
     </div>
   );
 };

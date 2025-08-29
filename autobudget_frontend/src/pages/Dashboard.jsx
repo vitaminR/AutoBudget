@@ -61,6 +61,33 @@ const Dashboard = () => {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="row g-3 mb-4">
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h6 className="text-muted mb-2">Total Monthly Bills</h6>
+              <div className="h4">$1,234.56</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h6 className="text-muted mb-2">Next Bill Due</h6>
+              <div className="h4">Sep 05</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h6 className="text-muted mb-2">Accounts Reconciled</h6>
+              <div className="h4">3 / 4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row g-3 mb-4">
         <Card
           title="Income"
           value={summary ? `$${summary.income.toFixed(2)}` : "…"}
