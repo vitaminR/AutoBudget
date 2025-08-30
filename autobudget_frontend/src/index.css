@@ -22,11 +22,17 @@
   --brand-text: #e6f4ef;
   --brand-muted: #8aa49c;
   /* Gold accent */
-  --brand-accent: #d4af37;
-  --brand-accent-soft: #e0c167;
+  --brand-accent: #d4af37;    /* classic gold */
+  --brand-accent-soft: #e3c56b; /* softer gold */
+  --brand-accent-glow: 0 0 0 1px rgba(212,175,55,0.35), 0 8px 24px rgba(212,175,55,0.08);
   /* Primary action (deep green) */
   --brand-primary: #0a2f24;
   --brand-primary-hover: #07241c;
+
+  /* Signals */
+  --brand-success: #1f7a5b;
+  --brand-warning: #b38728;
+  --brand-danger: #8e2f2f;
 
 html,
 body {
@@ -78,7 +84,7 @@ a:hover {
 
 /* Navbar: dark green with gold trim */
 .app-navbar {
-  background-color: var(--brand-surface) !important;
+  background: linear-gradient(180deg, rgba(10,29,23,0.95) 0%, rgba(7,22,16,0.98) 100%) !important;
   border-bottom: 1px solid rgba(212, 175, 55, 0.18);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35),
     inset 0 -2px 0 rgba(212, 175, 55, 0.06);
@@ -116,12 +122,26 @@ a:hover {
   background-color: var(--brand-surface-2);
   color: var(--brand-text);
   border-color: var(--brand-border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 .card .card-header {
   background-color: rgba(212, 175, 55, 0.06);
   color: var(--brand-accent);
   border-bottom-color: var(--brand-border);
 }
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--brand-accent-glow);
+  border-color: rgba(212,175,55,0.35);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--brand-text);
+}
+h2, h3, h4 { letter-spacing: 0.2px; }
+.section-title { color: var(--brand-accent); }
 .table {
   color: var(--brand-text);
   background-color: var(--brand-surface-2);
@@ -164,6 +184,7 @@ a:hover {
   background-color: #0e2b22;
   color: var(--brand-text);
   border-color: var(--brand-border);
+  accent-color: var(--brand-accent);
 }
 .form-control::placeholder {
   color: var(--brand-muted);
@@ -204,6 +225,12 @@ a:hover {
   color: var(--brand-accent) !important;
 }
 
+/* Alerts */
+.alert { border: 1px solid var(--brand-border); color: var(--brand-text); }
+.alert-danger { background-color: rgba(142,47,47,0.15); border-color: rgba(142,47,47,0.5); }
+.alert-warning { background-color: rgba(179,135,40,0.12); border-color: rgba(179,135,40,0.5); color: var(--brand-accent); }
+.alert-success { background-color: rgba(31,122,91,0.12); border-color: rgba(31,122,91,0.5); }
+
 /* Lists (Upcoming/Next Pay Period) */
 .list-group {
   --bs-list-group-bg: var(--brand-surface-2);
@@ -239,6 +266,31 @@ a:hover {
   background-color: rgba(212, 175, 55, 0.12);
   border-color: var(--brand-accent);
 }
+
+/* Additional button variants */
+.btn-success { background-color: var(--brand-success); border-color: var(--brand-accent); }
+.btn-success:hover { background-color: #1a6a4f; border-color: var(--brand-accent-soft); }
+.btn-warning { background-color: var(--brand-warning); border-color: var(--brand-accent); color: #111; }
+.btn-warning:hover { background-color: #9c7323; border-color: var(--brand-accent-soft); color: #111; }
+.btn-danger { background-color: var(--brand-danger); border-color: #a94848; }
+.btn-danger:hover { background-color: #7a2626; border-color: #c35b5b; }
+
+/* Dropdowns, tooltips, modals, tabs, progress */
+.dropdown-menu { background-color: var(--brand-surface-2); color: var(--brand-text); border-color: var(--brand-border); }
+.dropdown-item { color: var(--brand-text); }
+.dropdown-item:hover { background-color: rgba(212,175,55,0.08); color: var(--brand-text); }
+.tooltip .tooltip-inner, .popover .popover-body { background-color: #0a1d17; color: var(--brand-text); border: 1px solid var(--brand-border); }
+.modal-content { background-color: var(--brand-surface-2); color: var(--brand-text); border-color: var(--brand-border); }
+.nav-tabs .nav-link { color: var(--brand-muted); border-color: var(--brand-border); }
+.nav-tabs .nav-link.active { color: var(--brand-accent); background-color: #0a1d17; border-color: var(--brand-accent) var(--brand-border) transparent; }
+.progress { background-color: #0f291f; }
+.progress-bar { background: linear-gradient(90deg, var(--brand-accent) 0%, #f1d77a 100%); }
+
+/* Scrollbar (WebKit) */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: #06110e; }
+*::-webkit-scrollbar-thumb { background-color: #123327; border: 2px solid #06110e; border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background-color: #154033; }
 
 /* Code blocks */
 code {

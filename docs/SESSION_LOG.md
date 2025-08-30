@@ -48,6 +48,7 @@ This entry documents the revert performed to restore repository hygiene. Future 
   - Docs: Updated `scripts/README.md` to document usage. Fixed duplicate heading.
 
 - [2025-08-29] UI theme: dark green with gold accents.
+
   - Modified:
     - `autobudget_frontend/src/index.css`: added CSS variables and global theme (emerald background, gold accent), Bootstrap-compatible overrides for navbar, cards, tables, forms, and buttons.
     - `autobudget_frontend/src/components/Navbar.jsx`: applied `app-navbar` class to adopt theme.
@@ -55,3 +56,7 @@ This entry documents the revert performed to restore repository hygiene. Future 
     - `autobudget_frontend/src/components/StatusDisplay.jsx`: spinner and alert colors match gold/emerald theme.
   - Scope: style-only, no functional logic changes.
   - Follow-up: Darkened palette and enriched table styles (zebra striping, hover, header bg, rounded corners) in subsequent pass.
+
+- [2025-08-29] Opulent dark theme pass.
+  - Modified: `autobudget_frontend/src/index.css` to extend the theme across components (nav, cards, lists, badges, forms, alerts, dropdowns, tabs, modals, progress bars, scrollbars) and chart containers (Recharts/Apex/Chart.js) with deeper emerald tones and rich gold accents.
+  - Notes: Visual/style-only changes; no logic altered.
