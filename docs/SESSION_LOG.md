@@ -6,6 +6,14 @@
   - Moved SCSS-like nested chart selectors out of the `html, body` block into top-level selectors.
   - Outcome: Frontend compiles without the "Unclosed block" error.
 
+- [2025-08-30] Frontend fixes (routing and endpoints):
+
+  - `src/api/client.js`: API no longer prefixes `/api`; `API(p) => p`.
+  - `src/pages/Bills.js`: Use `PUT /bills/{id}` with `{ paid }` for toggle; kept optimistic update + revert on error.
+  - `src/pages/BudgetArena.jsx`: Fetch tasks from `/bills` and filter unpaid; mark complete via `PUT /bills/{id}`.
+  - `src/pages/Forecast.jsx`: Switched to `axios.get(API('/payperiods/17/summary'))`.
+  - Removed unused: `src/api/client.ts`, `src/pages/Snowball.jsx`, `src/pages/Snowball.tsx`.
+
 - [2025-08-29] Debugging 500 errors and frontend data loading failures.
 
   - Symptoms: User reports frontend pages are not loading data. Initial smoke test (`scripts/smoke_test.py`) showed 'Connection refused', indicating the server was not running.

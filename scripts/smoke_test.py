@@ -9,7 +9,6 @@ ENDPOINTS_TO_TEST = [
     "/debts/snowball",
     "/payperiods/17/summary",
     "/gamification/status",
-    "/gamification/tasks",
 ]
 # Simulate a request from the frontend to test CORS
 HEADERS = {
