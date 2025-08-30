@@ -28,6 +28,7 @@ This entry documents the revert performed to restore repository hygiene. Future 
   - Notes: Warnings include SQLAlchemy 2.0 deprecation for `declarative_base()` and unknown pytest mark `order` (non-blocking).
 
 - [2025-08-29] Fix: compatibility endpoint `/api/debts/snowball` crashing at runtime.
+
   - Action: Updated `autobudget_backend/app.py` to invoke `debts_snowball` with a real `SessionLocal()` instance in the `/api/debts/snowball` wrapper instead of calling it without a DB session (which caused a `Depends` object to be passed and an AttributeError).
   - Verification: Restarted dev runner and observed that `/api/debts/snowball` no longer raises AttributeError in backend logs.
 
