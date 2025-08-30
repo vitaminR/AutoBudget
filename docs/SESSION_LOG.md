@@ -1,3 +1,11 @@
+### 2025-08-30 — Debt page UX: group duplicates + edit amount
+
+- Frontend (Debt.jsx):
+  - Group snowball items by debt name, aggregating balances and showing a count badge to avoid confusing duplicates.
+  - Added an inline "Edit Amount" modal. Lets users pick the underlying bill (if multiple with same name) and update its amount via PUT /bills/{id}. Refreshes snowball and bills after save.
+- Rationale: The screenshot showed repeated creditors. Duplicates come from multiple credit-class bills with the same name; grouping clarifies totals while still allowing precise edits.
+- Notes: No backend changes. API paths remain unprefixed (client API(p) returns p).
+
 # Session Log
 
 - [2025-08-30] Fix: Resolved CRA build failure due to CSS syntax error in `autobudget_frontend/src/index.css`.

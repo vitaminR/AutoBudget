@@ -34,14 +34,11 @@ const BudgetArena = () => {
   }, []);
 
   const handleCompleteTask = (playerId, task) => {
-    // Optionally still post to gamification if backend supports it; otherwise just update the bill
-    const award = axios
+    axios
       .post(API("/gamification/complete-task"), {
         player_id: playerId,
-        task_type: task.task_type,
+        task_type: "pay_bill",
       })
-      .catch(() => null);
-    Promise.resolve(award)
       .then(() => axios.put(API(`/bills/${task.id}`), { paid: true }))
       .then(() => fetchData())
       .catch((err) => {

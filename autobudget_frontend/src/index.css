@@ -251,7 +251,7 @@ h4 {
   background-color: var(--brand-primary) !important;
 }
 .text-primary {
-  color: var(--brand-accent) !important;
+  color: var(--brand-accent) !importan;
 }
 
 /* Alerts */
@@ -398,4 +398,40 @@ h4 {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+.table-paid {
+  background: linear-gradient(
+    45deg,
+    var(--brand-success),
+    var(--brand-primary)
+  ) !important;
+  color: var(--brand-text) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-paid::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: rotate(30deg);
+  animation: shine 5s infinite linear;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-50%) translateY(-50%) rotate(30deg);
+  }
+  100% {
+    transform: translateX(50%) translateY(50%) rotate(30deg);
+  }
 }

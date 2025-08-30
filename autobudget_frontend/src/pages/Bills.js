@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API } from "../api/client";
 import StatusDisplay from "../components/StatusDisplay";
+import { Modal, Button, Form } from "react-bootstrap";
 
 const getRowClass = (billClass) => {
   switch (billClass) {
@@ -22,6 +23,8 @@ const Bills = () => {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editingBill, setEditingBill] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchBills = () => {
     setLoading(true);
@@ -73,9 +76,28 @@ const Bills = () => {
   };
 
   const handleEdit = (bill) => {
-    // Placeholder for a future modal form
-    console.log("Editing bill:", bill);
-    alert(`Editing functionality for "${bill.name}" is not yet implemented.`);
+    setEditingBill(bill);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!editingBill) return;
+    axios
+      .put(API(`/bills/${editingBill.id}`), editingBill)
+      .then(() => {
+        setIsEditModalOpen(false);
+        setEditingBill(null);
+        fetchBills();
+      })
+      .catch((err) => {
+        console.error("Error updating bill:", err);
+        setError("Failed to update bill.");
+      });
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setEditingBill(null);
   };
 
   return (
@@ -116,7 +138,7 @@ const Bills = () => {
                     key={bill.id}
                     className={
                       bill.paid
-                        ? "table-success text-body-secondary"
+                        ? "table-paid"
                         : getRowClass(bill.bill_class)
                     }
                   >
@@ -176,6 +198,75 @@ const Bills = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {editingBill && (
+        <Modal show={isEditModalOpen} onHide={handleCloseModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Bill</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingBill.name}
+                  onChange={(e) =>
+                    setEditingBill({ ...editingBill, name: e.target.value })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Amount</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingBill.amount}
+                  onChange={(e) =>
+                    setEditingBill({
+                      ...editingBill,
+                      amount: parseFloat(e.target.value),
+                    })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Due Day</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingBill.due_day}
+                  onChange={(e) =>
+                    setEditingBill({
+                      ...editingBill,
+                      due_day: parseInt(e.target.value),
+                    })
+                  }
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Class</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingBill.bill_class}
+                  onChange={(e) =>
+                    setEditingBill({
+                      ...editingBill,
+                      bill_class: e.target.value,
+                    })
+                  }
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleUpdate}>
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Modal>
       )}
     </div>
   );
