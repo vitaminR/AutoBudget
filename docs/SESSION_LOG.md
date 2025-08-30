@@ -1,3 +1,8 @@
+- [2025-08-29] Debugging 500 errors and frontend data loading failures.
+  - Symptoms: User reports frontend pages are not loading data. Initial smoke test (`scripts/smoke_test.py`) showed 'Connection refused', indicating the server was not running.
+  - Diagnostics: A subsequent attempt to run the server was cancelled. User reported an intermittent `200 OK` on the `/debts/snowball` endpoint, while other endpoints failed, suggesting a partial application startup.
+  - Status: Root cause is likely a runtime error in `app.py` that occurs during initialization. Awaiting user to restart the application server so I can perform a direct launch to capture the startup error.
+
 # Session Log
 
 - [2025-08-29] Revert of unintended agent edits: reverted agent-made changes across the repository to restore the working tree to the previous committed state.
