@@ -13,10 +13,38 @@
   --brand-primary: #0e4234;
   --brand-primary-hover: #0b372c;
 }
+:root {
+  /* Dark emerald palette (even darker) */
+  --brand-bg: #030a07;        /* page background */
+  --brand-surface: #071610;   /* surfaces like navbar */
+  --brand-surface-2: #0a1d17; /* cards, panels */
+  --brand-border: #0f291f;
+  --brand-text: #e6f4ef;
+  --brand-muted: #8aa49c;
+  /* Gold accent */
+  --brand-accent: #d4af37;
+  --brand-accent-soft: #e0c167;
+  /* Primary action (deep green) */
+  --brand-primary: #0a2f24;
+  --brand-primary-hover: #07241c;
 
 html,
 body {
   height: 100%;
+  .chart, .chart-container, .table-responsive .chart, .recharts-wrapper,
+  .apexcharts-canvas, .chartjs-render-monitor, canvas {
+    background: transparent !important;
+  }
+  /* Recharts theming */
+  .recharts-cartesian-grid line { stroke: rgba(255,255,255,0.08) !important; }
+  .recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line { stroke: var(--brand-border) !important; }
+  .recharts-cartesian-axis-tick-value { fill: var(--brand-muted) !important; }
+  .recharts-legend-item-text { color: var(--brand-muted) !important; }
+  .recharts-default-tooltip { background-color: #0a1d17 !important; border: 1px solid var(--brand-border) !important; color: var(--brand-text) !important; }
+
+  /* ApexCharts theming (if used) */
+  .apexcharts-tooltip { background-color: #0a1d17 !important; border: 1px solid var(--brand-border) !important; color: var(--brand-text) !important; }
+  .apexcharts-legend-text { color: var(--brand-muted) !important; }
 }
 
 body {
@@ -28,9 +56,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: radial-gradient(
     1200px 800px at 10% -10%,
-    #0d261f 0%,
+    #0a1d17 0%,
     var(--brand-bg) 35%,
-    #030c09 100%
+    #010604 100%
   );
   color: var(--brand-text);
 }
@@ -103,7 +131,7 @@ a:hover {
 }
 .table thead th {
   color: var(--brand-accent);
-  background-color: #0c251e;
+  background-color: #0a1d17;
   border-bottom-color: var(--brand-border);
   text-transform: uppercase;
   font-size: 0.85rem;
@@ -174,6 +202,42 @@ a:hover {
 }
 .text-primary {
   color: var(--brand-accent) !important;
+}
+
+/* Lists (Upcoming/Next Pay Period) */
+.list-group {
+  --bs-list-group-bg: var(--brand-surface-2);
+  --bs-list-group-border-color: var(--brand-border);
+  --bs-list-group-color: var(--brand-text);
+}
+.list-group-item {
+  background-color: var(--brand-surface-2);
+  color: var(--brand-text);
+  border-color: var(--brand-border);
+}
+.list-group-item:hover {
+  background-color: rgba(212, 175, 55, 0.06);
+}
+.list-group-flush > .list-group-item {
+  border-color: var(--brand-border);
+}
+
+/* Badges */
+.badge.bg-light {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  color: var(--brand-accent) !important;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+/* Secondary outline buttons to fit theme */
+.btn-outline-secondary {
+  color: var(--brand-muted);
+  border-color: var(--brand-border);
+}
+.btn-outline-secondary:hover {
+  color: var(--brand-text);
+  background-color: rgba(212, 175, 55, 0.12);
+  border-color: var(--brand-accent);
 }
 
 /* Code blocks */
