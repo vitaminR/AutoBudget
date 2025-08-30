@@ -101,3 +101,21 @@ def test_dashboard_loads():
 
     snowball_r = client.get("/debts/snowball")
     assert snowball_r.status_code == 200
+
+
+@pytest.mark.order(11)
+def test_calendar_endpoint():
+    r = client.get("/calendar")
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    # if any events, ensure required keys per type
+    if data:
+        ev = data[0]
+        assert "type" in ev
+        if ev["type"] == "bill":
+            for k in ["id", "title", "date", "amount", "bill_class", "paid"]:
+                assert k in ev
+        else:
+            for k in ["id", "title", "start_date", "end_date"]:
+                assert k in ev

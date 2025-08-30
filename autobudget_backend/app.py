@@ -13,11 +13,12 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Any, Dict, List, Optional
+import os
 import io, csv
 import sys
 from pathlib import Path as _Path
 import json
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 # Ensure repository root is on sys.path so absolute imports work regardless of cwd
 _ROOT = _Path(__file__).resolve().parents[1]
@@ -28,6 +29,7 @@ from autobudget_backend.services.snowball import compute as compute_snowball
 from autobudget_backend.services.unlocks import suggest as suggest_unlocks
 from autobudget_backend.services.reconcile import run as run_reconcile
 from autobudget_backend.services.pots import summarize_payperiod
+from autobudget_backend.services import reminders as reminders_service
 from autobudget_backend import models
 from autobudget_backend.db import SessionLocal, engine, init_db
 
@@ -38,6 +40,7 @@ except Exception as e:
 
 
 app = FastAPI(title="AutoBudget API (lite)", version="0.1.0")
+JOB_TOKEN = os.getenv("JOB_TOKEN", "autobudget-dev")
 
 # Dependency
 def get_db():
@@ -287,8 +290,73 @@ def reconcile(payload: Dict[str, Any], db: Session = Depends(get_db)) -> Dict[st
 
 @app.get("/calendar")
 def get_calendar(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    """Return a list of calendar events."""
-    return [] # Placeholder for Copilot to implement
+    """Return calendar events derived from Bills and PayPeriods.
+
+    Bill due date is computed by mapping bill.pp to a year-month via _pp_month_key
+    and clamping due_day to the last day of that month.
+    """
+
+    def _last_day_of_month(y: int, m: int) -> int:
+        nm = 1 if m == 12 else m + 1
+        ny = y + 1 if m == 12 else y
+        return (date(ny, nm, 1) - timedelta(days=1)).day
+
+    def _bill_due_date(bill: models.Bill) -> date:
+        ym = _pp_month_key(bill.pp)  # e.g., "2025-08"
+        y, m = map(int, ym.split("-"))
+        d = min(int(bill.due_day or 1), _last_day_of_month(y, m))
+        return date(y, m, d)
+
+    color_map = {
+        "Debt": "#c0392b",
+        "Critical": "#e74c3c",
+        "Needed": "#f1c40f",
+        "Comfort": "#3498db",
+    }
+
+    events: List[Dict[str, Any]] = []
+
+    # Bills -> single-day events
+    bills = db.query(models.Bill).all()
+    for b in bills:
+        due = _bill_due_date(b)
+        events.append({
+            "id": f"bill-{b.id}",
+            "type": "bill",
+            "title": b.name,
+            "date": str(due),
+            "amount": b.amount,
+            "bill_class": b.bill_class,
+            "color": color_map.get(b.bill_class, "#95a5a6"),
+            "paid": bool(b.paid),
+            "pp": b.pp,
+        })
+
+    # Pay periods -> span events, if present
+    try:
+        pps = db.query(models.PayPeriod).order_by(models.PayPeriod.start_date).all()
+        for pp in pps:
+            if pp.start_date and pp.end_date:
+                events.append({
+                    "id": f"pp-{pp.pp_number or pp.id}",
+                    "type": "pay_period",
+                    "title": f"PP {pp.pp_number}",
+                    "start_date": str(pp.start_date),
+                    "end_date": str(pp.end_date),
+                    "all_day": True,
+                    "color": "#2ecc71",
+                })
+    except Exception:
+        pass
+
+    # Sort events by date; bills by date, pay periods by start_date
+    def _event_sort_key(ev: Dict[str, Any]):
+        if ev.get("type") == "bill":
+            return (ev.get("date"), 0)
+        return (ev.get("start_date", "9999-12-31"), 1)
+
+    events.sort(key=_event_sort_key)
+    return events
 
 
 from pydantic import BaseModel
@@ -331,6 +399,22 @@ def get_gamification_tasks(db: Session = Depends(get_db)) -> List[Dict[str, Any]
         }
         for bill in unpaid_bills
     ]
+
+
+from fastapi import Header
+
+
+@app.post("/jobs/run-reminders")
+def run_reminders_job(x_job_token: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    """Trigger reminders manually. Intended for external schedulers.
+
+    Auth: Provide 'X-Job-Token' header matching JOB_TOKEN env var.
+    """
+    token: Optional[str] = x_job_token  # Header: X-Job-Token
+    if token != JOB_TOKEN:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    sent = reminders_service.send_due_bill_reminders()
+    return {"ok": True, "sent": int(sent)}
 
 
 # --- COMPAT: Compatibility aliases for current frontend (/api/*)
@@ -456,3 +540,33 @@ def _pp_month_key(pp: int) -> str:
     delta_weeks = (pp - anchor_pp) * 2
     d = anchor + timedelta(weeks=delta_weeks)
     return f"{d.year}-{d.month:02d}"
+
+
+# --- Optional scheduling of reminders with APScheduler
+try:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    _scheduler = AsyncIOScheduler()
+except Exception:
+    _scheduler = None
+
+
+@app.on_event("startup")
+async def _startup_jobs() -> None:
+    # Set up daily reminders if scheduler is available
+    if _scheduler is not None:
+        try:
+            _scheduler.add_job(reminders_service.send_due_bill_reminders, "cron", hour=9, minute=0)
+            _scheduler.start()
+        except Exception as e:
+            print(f"Failed to start scheduler: {e}")
+    else:
+        print("APScheduler not installed; reminders scheduling disabled.")
+
+
+@app.on_event("shutdown")
+async def _shutdown_jobs() -> None:
+    if _scheduler is not None:
+        try:
+            _scheduler.shutdown(wait=False)
+        except Exception:
+            pass

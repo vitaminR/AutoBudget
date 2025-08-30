@@ -1,13 +1,19 @@
-### 2025-08-30 — Debt page UX: group duplicates + edit amount
+# Session Log
+
+## 2025-08-30 — Fix Calendar.jsx, add QoL features, and verify build
+
+- Rewrote `autobudget_frontend/src/pages/Calendar.jsx` to a clean `react-big-calendar` implementation.
+- Added filters (Bills, Pay Periods, Unpaid only), a color legend, and double-click to toggle bill paid status.
+- Kept API paths unprefixed using `API('/calendar')` and `API('/bills/:id')` per conventions.
+- Next: run full test suite and verify frontend compiles and serves Calendar.
+
+## 2025-08-30 — Debt page UX: group duplicates + edit amount
 
 - Frontend (Debt.jsx):
   - Group snowball items by debt name, aggregating balances and showing a count badge to avoid confusing duplicates.
   - Added an inline "Edit Amount" modal. Lets users pick the underlying bill (if multiple with same name) and update its amount via PUT /bills/{id}. Refreshes snowball and bills after save.
 - Rationale: The screenshot showed repeated creditors. Duplicates come from multiple credit-class bills with the same name; grouping clarifies totals while still allowing precise edits.
 - Notes: No backend changes. API paths remain unprefixed (client API(p) returns p).
-
-# Session Log
-
 - [2025-08-30] Fix: Resolved CRA build failure due to CSS syntax error in `autobudget_frontend/src/index.css`.
 
   - Closed the `:root {}` block properly.
@@ -21,6 +27,22 @@
   - `src/pages/BudgetArena.jsx`: Fetch tasks from `/bills` and filter unpaid; mark complete via `PUT /bills/{id}`.
   - `src/pages/Forecast.jsx`: Switched to `axios.get(API('/payperiods/17/summary'))`.
   - Removed unused: `src/api/client.ts`, `src/pages/Snowball.jsx`, `src/pages/Snowball.tsx`.
+
+- [2025-08-30] Calendar & Reminders MVP
+
+  - Backend:
+    - Implemented `GET /calendar` in `autobudget_backend/app.py` generating events from Bills (single-day) and PayPeriods (spans). Colors reflect bill class; due dates computed via PP→month mapping with day clamped to month end.
+    - Implemented `autobudget_backend/services/reminders.py::send_due_bill_reminders()` with duplicate prevention (skips same (bill, type) within 24h) and logs reminders. Added optional APScheduler startup hooks to run daily at 09:00 if available.
+  - Frontend:
+    - Implemented `autobudget_frontend/src/pages/Calendar.jsx` to fetch `/calendar` and render a simple grouped-by-date list using color swatches.
+  - Notes: Scheduler runs only if APScheduler is installed in the backend env; otherwise prints that scheduling is disabled.
+
+- [2025-08-30] Job trigger for reminders (external scheduler support)
+
+  - Backend:
+    - Added `POST /jobs/run-reminders` protected by `X-Job-Token` header (env `JOB_TOKEN`, default `autobudget-dev`). Allows cloud schedulers (e.g., EventBridge/Cloud Scheduler) to trigger reminders instead of relying on in-process scheduling.
+  - Ops:
+    - Suggested schedule: every 15 minutes or daily at a chosen time; reminders are idempotent for 24 hours per bill/type.
 
 - [2025-08-29] Debugging 500 errors and frontend data loading failures.
 

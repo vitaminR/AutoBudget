@@ -435,3 +435,58 @@ code {
     transform: translateX(50%) translateY(50%) rotate(30deg);
   }
 }
+
+/* react-big-calendar dark theme */
+.rbc-calendar {
+  background-color: var(--brand-surface-2);
+  color: var(--brand-text);
+  border: 1px solid var(--brand-border);
+}
+
+.rbc-toolbar {
+  background-color: var(--brand-surface);
+  color: var(--brand-text);
+  border-bottom: 1px solid var(--brand-border);
+}
+
+.rbc-toolbar button {
+  color: var(--brand-text);
+}
+
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  background-color: var(--brand-primary);
+  color: var(--brand-text);
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border-color: var(--brand-border);
+}
+
+.rbc-header {
+  border-bottom: 1px solid var(--brand-border);
+}
+
+.rbc-day-bg {
+  border-left: 1px solid var(--brand-border);
+}
+
+.rbc-today {
+  background-color: var(--brand-primary-hover);
+}
+
+.rbc-event {
+  background-color: var(--brand-primary);
+  border: 1px solid var(--brand-accent);
+  color: var(--brand-text);
+}
+
+.rbc-event.rbc-selected {
+  background-color: var(--brand-accent);
+}
+
+.rbc-slot-selection {
+  background-color: rgba(212, 175, 55, 0.2);
+}
