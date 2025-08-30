@@ -8,6 +8,7 @@ import Paychecks from "./pages/Paychecks.jsx";
 import Forecast from "./pages/Forecast";
 import Awards from "./pages/Awards.jsx";
 import Navbar from "./components/Navbar";
+import Calendar from "./pages/Calendar.jsx";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/arena" element={<BudgetArena />} />
           <Route path="/forecast" element={<Forecast />} />
           <Route path="/awards" element={<Awards />} />
+          <Route path="/calendar" element={<Calendar />} />
         </Routes>
       </div>
     </BrowserRouter>

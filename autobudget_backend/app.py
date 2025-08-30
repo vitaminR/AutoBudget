@@ -285,6 +285,12 @@ def reconcile(payload: Dict[str, Any], db: Session = Depends(get_db)) -> Dict[st
     return run_reconcile(txns, bills)
 
 
+@app.get("/calendar")
+def get_calendar(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Return a list of calendar events."""
+    return [] # Placeholder for Copilot to implement
+
+
 from pydantic import BaseModel
 from autobudget_backend.services import gamification
 

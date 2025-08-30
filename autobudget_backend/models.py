@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, ForeignKey
 from .db import Base
 
 class Bill(Base):
@@ -19,3 +19,19 @@ class Paycheck(Base):
     source = Column(String, index=True)
     amount = Column(Float)
     player_id = Column(String, index=True) # "player1" or "player2"
+
+class PayPeriod(Base):
+    __tablename__ = "pay_periods"
+
+    id = Column(Integer, primary_key=True, index=True)
+    pp_number = Column(Integer, unique=True, index=True)
+    start_date = Column(Date)
+    end_date = Column(Date)
+
+class Reminder(Base):
+    __tablename__ = "reminders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bill_id = Column(Integer, ForeignKey("bills.id"))
+    sent_at = Column(DateTime)
+    reminder_type = Column(String) # e.g., "due_in_3_days"
