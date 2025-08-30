@@ -41,7 +41,16 @@ This entry documents the revert performed to restore repository hygiene. Future 
   - Verification: Script loads and completes locally (pending next run); no functional impact on app code.
 
 - [2025-08-29] Added snapshot alias wrappers.
+
   - Files added:
     - `scripts/gen.ps1` — PowerShell alias calling `generate_snapshot.ps1` with Python fallback.
     - `scripts/gen.sh` — Bash alias calling `generate_snapshot.py` from repo root.
   - Docs: Updated `scripts/README.md` to document usage. Fixed duplicate heading.
+
+- [2025-08-29] UI theme: dark green with gold accents.
+  - Modified:
+    - `autobudget_frontend/src/index.css`: added CSS variables and global theme (emerald background, gold accent), Bootstrap-compatible overrides for navbar, cards, tables, forms, and buttons.
+    - `autobudget_frontend/src/components/Navbar.jsx`: applied `app-navbar` class to adopt theme.
+    - `autobudget_frontend/src/App.css`: aligned link color with theme.
+    - `autobudget_frontend/src/components/StatusDisplay.jsx`: spinner and alert colors match gold/emerald theme.
+  - Scope: style-only, no functional logic changes.

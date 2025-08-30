@@ -87,3 +87,17 @@ def test_error_on_bad_gamification_task():
     payload = {"player_id": "player1", "task_type": "non_existent_task"}
     r = client.post("/gamification/complete-task", json=payload)
     assert r.status_code == 400
+
+
+@pytest.mark.order(10)
+def test_dashboard_loads():
+    """
+    Ensure the main dashboard endpoints load successfully.
+    This is a regression test for the "Failed to load dashboard data" error.
+    """
+    # The dashboard calls two endpoints, we test them both.
+    summary_r = client.get("/payperiods/17/summary")
+    assert summary_r.status_code == 200
+
+    snowball_r = client.get("/debts/snowball")
+    assert snowball_r.status_code == 200
