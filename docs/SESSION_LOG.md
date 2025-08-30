@@ -1,9 +1,16 @@
+# Session Log
+
+- [2025-08-30] Fix: Resolved CRA build failure due to CSS syntax error in `autobudget_frontend/src/index.css`.
+
+  - Closed the `:root {}` block properly.
+  - Moved SCSS-like nested chart selectors out of the `html, body` block into top-level selectors.
+  - Outcome: Frontend compiles without the "Unclosed block" error.
+
 - [2025-08-29] Debugging 500 errors and frontend data loading failures.
+
   - Symptoms: User reports frontend pages are not loading data. Initial smoke test (`scripts/smoke_test.py`) showed 'Connection refused', indicating the server was not running.
   - Diagnostics: A subsequent attempt to run the server was cancelled. User reported an intermittent `200 OK` on the `/debts/snowball` endpoint, while other endpoints failed, suggesting a partial application startup.
   - Status: Root cause is likely a runtime error in `app.py` that occurs during initialization. Awaiting user to restart the application server so I can perform a direct launch to capture the startup error.
-
-# Session Log
 
 - [2025-08-29] Revert of unintended agent edits: reverted agent-made changes across the repository to restore the working tree to the previous committed state.
   - Reason: Edits expanded beyond intended frontend scope and did not follow the project's change protocol (small, reviewable diffs and SESSION_LOG entries).
@@ -63,5 +70,16 @@ This entry documents the revert performed to restore repository hygiene. Future 
   - Follow-up: Darkened palette and enriched table styles (zebra striping, hover, header bg, rounded corners) in subsequent pass.
 
 - [2025-08-29] Opulent dark theme pass.
+
   - Modified: `autobudget_frontend/src/index.css` to extend the theme across components (nav, cards, lists, badges, forms, alerts, dropdowns, tabs, modals, progress bars, scrollbars) and chart containers (Recharts/Apex/Chart.js) with deeper emerald tones and rich gold accents.
   - Notes: Visual/style-only changes; no logic altered.
+
+- [2025-08-29] Snapshot alias preference respected.
+
+  - Removed wrapper approach (`scripts/gen.sh`).
+  - Updated `scripts/README.md` with true shell alias instructions for bash/zsh and PowerShell.
+
+- [2025-08-29] Test suite execution via scripts/run_tests.sh.
+
+  - Result: 10 passed, 0 failed, 11 warnings in ~3.6s. See `.devlogs/tests.log` for full output.
+  - Notes: Same non-blocking warnings (SQLAlchemy 2.0 deprecation; unknown pytest mark `order`).

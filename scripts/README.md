@@ -1,20 +1,19 @@
 # Scripts
 
-## Snapshot (alias)
+## Snapshot aliases (no extra files)
 
-- Windows PowerShell
+- Bash/zsh (add to your shell profile):
 
-  - `scripts/gen.ps1`
-  - Alias wrapper for `generate_snapshot.ps1` (which calls `generate_snapshot.py`).
-  - Usage:
-    - `./scripts/gen.ps1`
-    - `./scripts/gen.ps1 -Python python` (force interpreter)
+  - `alias gen='python3 ./scripts/generate_snapshot.py'`
+  - or if `python3` isn’t available: `alias gen='python ./scripts/generate_snapshot.py'`
 
-- WSL/Linux/macOS
-  - `scripts/gen.sh`
-  - Alias wrapper for `scripts/generate_snapshot.py`.
-  - Usage:
-    - `bash ./scripts/gen.sh`
+- PowerShell (add to your $PROFILE):
+  - `Set-Alias gen python3`
+  - Then run: `gen ./scripts/generate_snapshot.py`
+
+Or run directly anytime:
+
+- `python3 ./scripts/generate_snapshot.py`
 
 ---
 
