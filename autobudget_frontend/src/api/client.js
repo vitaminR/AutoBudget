@@ -1,1 +1,1 @@
-export const API = (p: string) => `/api${p}`;
+export const API = (p) => p;

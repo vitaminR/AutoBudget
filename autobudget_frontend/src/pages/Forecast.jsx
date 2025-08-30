@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { API } from "../api/client";
 
 const Forecast = () => {
@@ -9,12 +10,8 @@ const Forecast = () => {
     const load = async () => {
       try {
         setError(null);
-        const res = await fetch(
-          API("/payperiods/17/summary").replace("/api", "")
-        );
-        if (!res.ok) throw new Error("Failed to load");
-        const json = await res.json();
-        setSummary(json);
+        const { data } = await axios.get(API("/payperiods/17/summary"));
+        setSummary(data);
       } catch (e) {
         setError(e.message || "Failed");
       }
