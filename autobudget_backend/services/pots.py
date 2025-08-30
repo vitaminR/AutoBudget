@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from .. import models
 
 
-def def summarize_payperiod(db: Session, bills: List[models.Bill]) -> Dict[str, object]:
+def summarize_payperiod(db: Session, bills: List[models.Bill]) -> Dict[str, object]:
     """Return a summary for a pay period based on real data from the database."""
     # Calculate total income from all paychecks
     paychecks = db.query(models.Paycheck).all()

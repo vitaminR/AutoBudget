@@ -3,14 +3,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-# Import the FastAPI app (prefer MVP DB-free app)
-try:
-    from autobudget_backend.app import app  # type: ignore
-except Exception:
-    try:
-        from autobudget_backend.main import app  # type: ignore
-    except Exception:  # fallback if package import fails
-        pytest.skip("Backend app not importable", allow_module_level=True)
+from autobudget_backend.app import app
 
 client = TestClient(app)
 

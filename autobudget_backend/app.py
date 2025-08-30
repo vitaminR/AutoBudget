@@ -234,6 +234,8 @@ def get_bills(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
 def payperiod_summary(pp_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Return a real summary for a pay period based on data from the DB."""
     bills = db.query(models.Bill).filter(models.Bill.pp == pp_id).all()
+    if not bills:
+        raise HTTPException(status_code=404, detail=f"No bills found for pay period {pp_id}")
     summary = summarize_payperiod(db=db, bills=bills)
     summary["pp_id"] = pp_id
     return summary
