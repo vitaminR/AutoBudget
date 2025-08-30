@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { API } from "../api/client";
 
 const Card = ({ title, value, linkTo, linkText }) => (
@@ -21,27 +22,31 @@ const Card = ({ title, value, linkTo, linkText }) => (
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [debts, setDebts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
+    const loadDashboardData = async () => {
       try {
         setError(null);
-        const [sRes, dRes] = await Promise.all([
-          fetch(API("/payperiods/17/summary").replace("/api", "")),
-          fetch(API("/debts/snowball")),
+        setLoading(true);
+
+        const [summaryRes, debtsRes] = await axios.all([
+          axios.get(API("/payperiods/17/summary")),
+          axios.get(API("/debts/snowball")),
         ]);
-        if (!sRes.ok) throw new Error("Failed summary");
-        if (!dRes.ok) throw new Error("Failed debts");
-        const s = await sRes.json();
-        const d = await dRes.json();
-        setSummary(s);
-        setDebts(d);
+
+        setSummary(summaryRes.data);
+        setDebts(debtsRes.data);
       } catch (e) {
-        setError(e.message || "Failed to load");
+        const errorMsg = e.response ? e.response.data.detail : e.message;
+        setError(errorMsg || "Failed to load dashboard data.");
+      } finally {
+        setLoading(false);
       }
     };
-    load();
+
+    loadDashboardData();
   }, []);
 
   const upcoming = [

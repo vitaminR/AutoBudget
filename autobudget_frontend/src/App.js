@@ -2,7 +2,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard.jsx";
 import Bills from "./pages/Bills";
-import Snowball from "./pages/Snowball.jsx";
+import Debt from "./pages/Debt.jsx";
+import BudgetArena from "./pages/BudgetArena.jsx";
 import Forecast from "./pages/Forecast";
 import Awards from "./pages/Awards.jsx";
 import Navbar from "./components/Navbar";
@@ -15,7 +16,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/bills" element={<Bills />} />
-          <Route path="/debts" element={<Snowball />} />
+          <Route path="/debt" element={<Debt />} />
+          <Route path="/arena" element={<BudgetArena />} />
           <Route path="/forecast" element={<Forecast />} />
           <Route path="/awards" element={<Awards />} />
         </Routes>

@@ -1,72 +1,27 @@
 # Gemini Workspace Instructions: AutoBudget Project
 
-## 1.0 The GEMINI.md File: The Brain of Your Workspace
+This file provides the master instructions for the Gemini AI agent.
 
-This file is prepended to your prompts as a system message. Put project-level instructions here.
+## 1.0 Core Principle
 
-## 1.1 Project-Level and Hierarchical Instructions
+Your primary goal is to assist with software engineering tasks by following the project's established conventions.
 
-- Place a `GEMINI.md` in the project root for global instructions.
-- You can place `GEMINI.md` in subdirectories to scope instructions for those folders (e.g., `tests/GEMINI.md`).
+## 2.0 Architecture for AI Collaboration
 
-## 2.0 Crafting Effective Custom Instructions
+This project is configured for multiple AI agents. The architecture is as follows:
 
-Use markdown sections. Keep instructions concise and focused to save tokens.
+- **Shared Knowledge Base**: The `/docs` directory is the single source of truth for all project-wide documentation, including `CODE_MAP.md`, `CONVENTIONS.md`, and `SESSION_LOG.md`. **You must consult these files before making changes.**
+- **Agent-Specific Instructions**: Each AI agent has its own configuration file (e.g., `/.github/copilot-instructions.md` for Copilot). Your specific instructions are here and in the `.gemini/` directory.
 
-Example project instructions (adapted to AutoBudget):
+## 3.0 Your Primary Instructions
 
-### Persona
+1.  **Consult Shared Docs**: Always reference the files in the `/docs` directory to understand the project's architecture, conventions, and history.
+2.  **Persona**: You are an expert Python/FastAPI developer.
+3.  **Context**: The main application is in `autobudget_backend/app.py`. Key business logic is in `autobudget_backend/services/`.
+4.  **Rules**:
+    - Keep diffs small. Follow conventions from `/docs/CONVENTIONS.md`.
+    - **STRICTLY ENFORCE SCOPE:** Never modify files outside the direct scope of the user's request. Before executing any command with repository-wide effects (like a code formatter), you must describe its impact and get explicit user confirmation.
+    - **PRIORITIZE EFFICIENT CONTEXT:** To minimize cost, gather context in this order: 1) Read `docs/SESSION_LOG.md` for recent history. 2) Read `docs/CODE_MAP.md` and `docs/CONVENTIONS.md` for structure. 3) Use targeted search for docstrings or functions before reading full source files.
+    - **DELEGATE LARGE-SCALE READING:** For complex tasks requiring broad context from multiple files, consider offloading the initial summarization. Propose a clear, focused prompt for the user to give to another agent (like Copilot) and wait for the summary before proceeding.
 
-You are an expert Python/FastAPI developer specializing in backend financial applications. You write clean, testable, and efficient code.
-
-### Context
-
-This project, "AutoBudget", provides a lightweight FastAPI MVP in `autobudget_backend/app.py` with deterministic services under `autobudget_backend/services/`. A legacy, DB-backed app remains in `autobudget_backend/main.py` for reference. Frontend experiments live under `autobudget_frontend/`.
-
-Preferred routes: `/ingest/bills`, `/payperiods/{id}/summary`, `/debts/snowball`, `/unlocks`, `/reconcile`. Temporary compatibility aliases exist under `/api/*` to avoid churn.
-
-### Rules
-
-- Provide complete, runnable functions. Keep public behavior stable and add concise docstrings when adding utilities.
-- Prefer pure functions in `services/`; inject I/O at edges.
-- Follow repo docs in `docs/CONVENTIONS.md` (tags, placeholder shapes, COMPAT policy).
-- Keep diffs small; avoid mass refactors. Output responses in Markdown.
-
-### Context order (most to least important)
-
-1. `autobudget_backend/app.py` and `autobudget_backend/services/*`
-2. `AGENT_GUIDE.md`, `CODE_MAP.md`, `docs/CONVENTIONS.md`
-3. `SESSION_LOG.md` (recent decisions), `README.md` (dev/run)
-4. `3.api.json`, `docs/*`
-
-## 3.0 Master the .gemini/ignore File
-
-Create `.gemini/ignore` at project root to exclude noisy files and save tokens. Syntax matches `.gitignore`.
-
-## 4.0 Structure Your Workspace Intelligently
-
-Use a clear layout so prompts can reference single files or small sets of files.
-
-## 5.0 Be Explicit with File Context in Prompts
-
-Always include file paths for targeted reads.
-
-## 6.0 Write Token-Efficient Code
-
-Keep code modular, concise, and free of dead code.
-
-## 7.0 Manage Chat History
-
-Use `gemini --clear-history` to start fresh between unrelated tasks.
-
-## 8.0 Use a "Context" Directory for Boilerplate
-
-Create a `/context` directory for reusable schemas and boilerplate.
-
-## 9.0 Leverage Project-Local Settings
-
-You can create `./.gemini/settings.json` to override global settings for this project.
-
-## 10.0 Review and Refine Periodically
-
-Revisit these files to keep context current and token-efficient.
+For more detailed instructions on onboarding new agents, see `/docs/AI_AGENT_PROTOCOL.md`.

@@ -11,6 +11,7 @@
 This entry documents the revert performed to restore repository hygiene. Future agent edits should follow the project's AGENT_GUIDE and include incremental changes with SESSION_LOG entries before committing.
 
 - [2025-08-29] Frontend improvements (Navbar, StatusDisplay, Dashboard placeholders).
+
   - Files added:
     - `autobudget_frontend/src/components/Navbar.jsx` — simple navbar with Dashboard and Bills links.
     - `autobudget_frontend/src/components/StatusDisplay.jsx` — centralized loading spinner and error alert component.
@@ -19,3 +20,13 @@ This entry documents the revert performed to restore repository hygiene. Future 
     - `autobudget_frontend/src/pages/Bills.js` — uses `StatusDisplay` for loading/error states; existing logic preserved.
     - `autobudget_frontend/src/pages/Dashboard.jsx` — added three placeholder cards: Total Monthly Bills, Next Bill Due, Accounts Reconciled.
   - Scope: frontend-only changes and this single SESSION_LOG entry were committed to follow the project's strict rules for agent edits.
+
+- [2025-08-29] Test suite execution via scripts/run_tests.sh.
+
+  - Action: Ran the standard test script which provisions venv and executes pytest.
+  - Result: 6 passed, 0 failed, 7 warnings in ~7s. See `.devlogs/tests.log` for full output.
+  - Notes: Warnings include SQLAlchemy 2.0 deprecation for `declarative_base()` and unknown pytest mark `order` (non-blocking).
+
+- [2025-08-29] Fix: compatibility endpoint `/api/debts/snowball` crashing at runtime.
+  - Action: Updated `autobudget_backend/app.py` to invoke `debts_snowball` with a real `SessionLocal()` instance in the `/api/debts/snowball` wrapper instead of calling it without a DB session (which caused a `Depends` object to be passed and an AttributeError).
+  - Verification: Restarted dev runner and observed that `/api/debts/snowball` no longer raises AttributeError in backend logs.

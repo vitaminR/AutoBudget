@@ -1,22 +1,30 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React from 'react';
+import { NavLink } from 'react-router-dom';
 
-const Navbar = () => (
-  <nav className="navbar navbar-expand navbar-light bg-light">
-    <div className="container">
-      <NavLink className="navbar-brand" to="/">
-        AutoBudget
-      </NavLink>
-      <div className="navbar-nav">
-        <NavLink className="nav-link" to="/">
-          Dashboard
+const Navbar = () => {
+  return (
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div className="container">
+        <NavLink className="navbar-brand" to="/">
+          AutoBudget
         </NavLink>
-        <NavLink className="nav-link" to="/bills">
-          Bills
-        </NavLink>
+        <div className="navbar-nav">
+          <NavLink className="nav-link" to="/" end>
+            Dashboard
+          </NavLink>
+          <NavLink className="nav-link" to="/bills">
+            Bills
+          </NavLink>
+          <NavLink className="nav-link" to="/debt">
+            Debt
+          </NavLink>
+          <NavLink className="nav-link" to="/arena">
+            Budget Arena
+          </NavLink>
+        </div>
       </div>
-    </div>
-  </nav>
-);
+    </nav>
+  );
+};
 
 export default Navbar;

@@ -146,12 +146,22 @@ def payperiod_summary(pp_id: int) -> Dict[str, Any]:
 
 @app.get("/debts/snowball")
 def debts_snowball(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    """Return a simple snowball ordering with payoff ETA in days."""
-    debts = db.query(models.Bill).filter(models.Bill.bill_class == 'Credit').all()
-    debt_list = [
-        {"name": debt.name, "balance": debt.amount, "apr": 0} for debt in debts
-    ]
-    return compute_snowball(debt_list)
+    """Return a simple snowball ordering with payoff ETA in days.
+
+    Defensive: if called programmatically and `db` is not a Session (for example
+    a `Depends` placeholder), create a local SessionLocal() and use that.
+    """
+    close_after = False
+    if not hasattr(db, "query"):
+        db = SessionLocal()
+        close_after = True
+    try:
+        debts = db.query(models.Bill).filter(models.Bill.bill_class == 'Credit').all()
+        debt_list = [{"name": debt.name, "balance": debt.amount, "apr": 0} for debt in debts]
+        return compute_snowball(debt_list)
+    finally:
+        if close_after:
+            db.close()
 
 
 @app.get("/unlocks")
@@ -176,6 +186,48 @@ def reconcile(payload: Dict[str, Any], db: Session = Depends(get_db)) -> Dict[st
     txns = payload.get("transactions") or []
     bills = db.query(models.Bill).all()
     return run_reconcile(txns, bills)
+
+
+from pydantic import BaseModel
+from autobudget_backend.services import gamification
+
+class GameTask(BaseModel):
+    player_id: str
+    task_type: str
+
+@app.get("/gamification/status", tags=["gamification"])
+def get_status() -> Dict[str, Any]:
+    """Returns the current points and spending money for both players."""
+    return gamification.get_gamification_status()
+
+@app.post("/gamification/complete-task", tags=["gamification"])
+def complete_gamification_task(task: GameTask) -> Dict[str, Any]:
+    """
+    Logs a completed task for a player and returns their updated status.
+    """
+    try:
+        updated_status = gamification.complete_task(
+            player_id=task.player_id, task_type=task.task_type
+        )
+        return updated_status
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/gamification/tasks", tags=["gamification"])
+def get_gamification_tasks(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Returns a list of unpaid bills to be used as available tasks."""
+    unpaid_bills = db.query(models.Bill).filter(models.Bill.paid == False).all()
+    return [
+        {
+            "id": bill.id,
+            "name": bill.name,
+            "amount": bill.amount,
+            "bill_class": bill.bill_class,
+            "task_type": "pay_bill"
+        }
+        for bill in unpaid_bills
+    ]
 
 
 # --- COMPAT: Compatibility aliases for current frontend (/api/*)
@@ -242,7 +294,15 @@ def _compat_toggle(bill_id: int, db: Session = Depends(get_db)) -> Dict[str, Any
 # --- COMPAT extras so /api/* works for MVP endpoints too
 @app.get("/api/debts/snowball")
 def _compat_debts_snowball() -> List[Dict[str, Any]]:
-    return debts_snowball()
+    # Directly implement the snowball compat route to avoid calling the
+    # endpoint function (which relies on FastAPI dependency injection).
+    db = SessionLocal()
+    try:
+        debts = db.query(models.Bill).filter(models.Bill.bill_class == 'Credit').all()
+        debt_list = [{"name": debt.name, "balance": debt.amount, "apr": 0} for debt in debts]
+        return compute_snowball(debt_list)
+    finally:
+        db.close()
 
 @app.get("/api/unlocks")
 def _compat_unlocks() -> List[Dict[str, Any]]:

@@ -21,11 +21,13 @@ def summarize_payperiod(pp_id: str) -> Dict[str, object]:
     variable = round(income * 0.30, 2)
     surplus = round(income - fixed - variable, 2)
     pots = {
-        "Needs": round(income * 0.50, 2),
-        "Wants": round(income * 0.30, 2),
-        "Savings": round(income * 0.15, 2),
-        "Debt": round(income * 0.05, 2),
+        "Debt_Payments": round(income * 0.10, 2),
+        "Critical_Bills": round(income * 0.30, 2),
+        "Needed_Bills": round(income * 0.15, 2),
+        "Comfort_Pool": round(income * 0.10, 2),
+        "Annual_Rainy_Day": round(income * 0.10, 2),
     }
+    # Note: The remaining 25% is available for the gamification/spending pool
     return {
         "income": income,
         "fixed": fixed,

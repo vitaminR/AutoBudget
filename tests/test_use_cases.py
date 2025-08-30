@@ -45,7 +45,7 @@ def test_uc003_pots_keys():
     assert r.status_code == 200
     body = r.json()
     pots = body.get("pots", {})
-    for key in ["Needs", "Wants", "Savings", "Debt"]:
+    for key in ["Debt_Payments", "Critical_Bills", "Needed_Bills", "Comfort_Pool", "Annual_Rainy_Day"]:
         assert key in pots
 
 
@@ -75,3 +75,23 @@ def test_uc006_reconcile_counts():
     assert r.status_code == 200
     data = r.json()
     assert {"matched", "unmatched"}.issubset(data.keys())
+
+
+@pytest.mark.order(7)
+def test_uc007_gamification_status():
+    """Ensure the gamification status endpoint returns the correct shape."""
+    r = client.get("/gamification/status")
+    assert r.status_code == 200
+    data = r.json()
+    assert "player1" in data
+    assert "player2" in data
+    assert "points" in data["player1"]
+    assert "spending_money" in data["player1"]
+
+@pytest.mark.order(8)
+def test_uc008_gamification_tasks():
+    """Ensure the gamification tasks endpoint returns a list."""
+    r = client.get("/gamification/tasks")
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)

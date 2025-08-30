@@ -33,7 +33,8 @@ source "$VENV_ACTIVATE"
 python -m pip -q install -U pip >/dev/null || true
 # Install requirements if present
 if [ -f "$ROOT/autobudget_backend/requirements.txt" ]; then
-  pip -q install -r "$ROOT/autobudget_backend/requirements.txt" >/dev/null || die "pip install failed"i
+  pip -q install -r "$ROOT/autobudget_backend/requirements.txt" >/dev/null || die "pip install failed"
+fi
 pip -q install pytest >/dev/null || true
 
 export PYTHONPATH="$ROOT:${PYTHONPATH:-}"
