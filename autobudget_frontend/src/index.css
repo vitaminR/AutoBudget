@@ -1,18 +1,4 @@
-:root {
-  /* Dark emerald palette (darker pass) */
-  --brand-bg: #06130f; /* page background */
-  --brand-surface: #0b2019; /* surfaces like navbar */
-  --brand-surface-2: #0d261f; /* cards, panels */
-  --brand-border: #143327;
-  --brand-text: #e6f4ef;
-  --brand-muted: #9ab3ab;
-  /* Gold accent */
-  --brand-accent: #d4af37;
-  --brand-accent-soft: #e0c167;
-  /* Primary action (deep green) */
-  --brand-primary: #0e4234;
-  --brand-primary-hover: #0b372c;
-}
+
 :root {
   /* Dark emerald palette (even darker) */
   --brand-bg: #030a07;        /* page background */
