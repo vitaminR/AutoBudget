@@ -54,3 +54,4 @@ This entry documents the revert performed to restore repository hygiene. Future 
     - `autobudget_frontend/src/App.css`: aligned link color with theme.
     - `autobudget_frontend/src/components/StatusDisplay.jsx`: spinner and alert colors match gold/emerald theme.
   - Scope: style-only, no functional logic changes.
+  - Follow-up: Darkened palette and enriched table styles (zebra striping, hover, header bg, rounded corners) in subsequent pass.

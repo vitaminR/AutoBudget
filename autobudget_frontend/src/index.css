@@ -1,17 +1,17 @@
 :root {
-  /* Dark emerald palette */
-  --brand-bg: #0b241d; /* page background */
-  --brand-surface: #0f2f25; /* surfaces like navbar */
-  --brand-surface-2: #103429; /* cards, panels */
-  --brand-border: #1e4d3b;
+  /* Dark emerald palette (darker pass) */
+  --brand-bg: #06130f; /* page background */
+  --brand-surface: #0b2019; /* surfaces like navbar */
+  --brand-surface-2: #0d261f; /* cards, panels */
+  --brand-border: #143327;
   --brand-text: #e6f4ef;
-  --brand-muted: #a0bab1;
+  --brand-muted: #9ab3ab;
   /* Gold accent */
   --brand-accent: #d4af37;
   --brand-accent-soft: #e0c167;
   /* Primary action (deep green) */
-  --brand-primary: #145a46;
-  --brand-primary-hover: #0f4a3a;
+  --brand-primary: #0e4234;
+  --brand-primary-hover: #0b372c;
 }
 
 html,
@@ -28,9 +28,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: radial-gradient(
     1200px 800px at 10% -10%,
-    #103429 0%,
+    #0d261f 0%,
     var(--brand-bg) 35%,
-    #081a15 100%
+    #030c09 100%
   );
   color: var(--brand-text);
 }
@@ -96,15 +96,40 @@ a:hover {
 }
 .table {
   color: var(--brand-text);
+  background-color: var(--brand-surface-2);
+  border-color: var(--brand-border);
+  border-radius: 10px;
+  overflow: hidden; /* rounded corners */
 }
 .table thead th {
   color: var(--brand-accent);
+  background-color: #0c251e;
   border-bottom-color: var(--brand-border);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
 }
 .table,
 .table td,
 .table th {
   border-color: var(--brand-border);
+}
+.table tbody tr td,
+.table tbody tr th {
+  vertical-align: middle;
+}
+/* Zebra striping */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+/* Hover state */
+.table-hover tbody tr:hover {
+  background-color: rgba(212, 175, 55, 0.08);
+  transition: background-color 120ms ease-in-out;
+}
+/* Caption and small text */
+.table caption {
+  color: var(--brand-muted);
 }
 .form-control,
 .form-select {
