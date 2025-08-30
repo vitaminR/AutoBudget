@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Bills from "./pages/Bills";
 import Debt from "./pages/Debt.jsx";
 import BudgetArena from "./pages/BudgetArena.jsx";
+import Paychecks from "./pages/Paychecks.jsx";
 import Forecast from "./pages/Forecast";
 import Awards from "./pages/Awards.jsx";
 import Navbar from "./components/Navbar";
@@ -27,3 +28,4 @@ function App() {
 }
 
 export default App;
+t default App;

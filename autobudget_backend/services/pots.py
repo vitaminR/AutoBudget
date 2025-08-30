@@ -1,25 +1,23 @@
-"""Deterministic, DB-free pay period summary utilities.
-
-summarize_payperiod(pp_id) -> dict with required budget keys and pots.
-Pure function with stable placeholder math so tests pass consistently.
-"""
+"""Pay period summary utilities."""
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, List
+from sqlalchemy.orm import Session
+from .. import models
 
 
-def summarize_payperiod(pp_id: str) -> Dict[str, object]:
-    """Return a deterministic summary for a pay period without a DB.
+def def summarize_payperiod(db: Session, bills: List[models.Bill]) -> Dict[str, object]:
+    """Return a summary for a pay period based on real data from the database."""
+    # Calculate total income from all paychecks
+    paychecks = db.query(models.Paycheck).all()
+    income = sum(p.amount for p in paychecks)
 
-    Uses pp_id digits to vary income in a stable way, then applies fixed ratios.
-    Keys: income, fixed, variable, surplus_or_deficit, pots{Needs,Wants,Savings,Debt}.
-    """
-    digits = "".join(ch for ch in str(pp_id) if ch.isdigit()) or "0"
-    n = int(digits)
-    income = float(2000.0 + (n % 5) * 100.0)
-    fixed = round(income * 0.50, 2)
-    variable = round(income * 0.30, 2)
+    # Calculate fixed and variable costs from the bills for the period
+    fixed = sum(b.amount for b in bills if b.bill_class in ['Debt', 'Critical'])
+    variable = sum(b.amount for b in bills if b.bill_class in ['Needed', 'Comfort'])
     surplus = round(income - fixed - variable, 2)
+
+    # Pots are based on the budgeted income allocation
     pots = {
         "Debt_Payments": round(income * 0.10, 2),
         "Critical_Bills": round(income * 0.30, 2),
@@ -28,6 +26,7 @@ def summarize_payperiod(pp_id: str) -> Dict[str, object]:
         "Annual_Rainy_Day": round(income * 0.10, 2),
     }
     # Note: The remaining 25% is available for the gamification/spending pool
+
     return {
         "income": income,
         "fixed": fixed,

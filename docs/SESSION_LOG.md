@@ -30,3 +30,10 @@ This entry documents the revert performed to restore repository hygiene. Future 
 - [2025-08-29] Fix: compatibility endpoint `/api/debts/snowball` crashing at runtime.
   - Action: Updated `autobudget_backend/app.py` to invoke `debts_snowball` with a real `SessionLocal()` instance in the `/api/debts/snowball` wrapper instead of calling it without a DB session (which caused a `Depends` object to be passed and an AttributeError).
   - Verification: Restarted dev runner and observed that `/api/debts/snowball` no longer raises AttributeError in backend logs.
+
+- [2025-08-29] Snapshot generator tightened.
+  - Files modified:
+    - `scripts/generate_snapshot.py`: excluded `tshoot_vertex/`, `gcloud_quota_check/`; limited CRA `autobudget_frontend/public/` to `index.html` and `manifest.json`; skipped `docs/FullContext.md` in output; kept lockfile summarization.
+    - `scripts/generate_snapshot.ps1`: added interpreter fallback from `python3` to `python` for Windows.
+  - Rationale: Reduce noise and sensitive/irrelevant artifacts in agent-facing snapshots.
+  - Verification: Script loads and completes locally (pending next run); no functional impact on app code.

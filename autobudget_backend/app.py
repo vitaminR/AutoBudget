@@ -118,6 +118,100 @@ async def ingest_bills(file: UploadFile = File(...), db: Session = Depends(get_d
         raise HTTPException(status_code=400, detail=f"Invalid CSV or database error: {e}")
 
 
+from pydantic import BaseModel
+
+# Pydantic Models (Schemas)
+class BillUpdate(BaseModel):
+    name: Optional[str] = None
+    amount: Optional[float] = None
+    due_day: Optional[int] = None
+    bill_class: Optional[str] = None
+    pp: Optional[int] = None
+    paid: Optional[bool] = None
+
+class BillCreate(BaseModel):
+    name: str
+    amount: float
+    due_day: int
+    bill_class: str
+    pp: int
+
+class PaycheckBase(BaseModel):
+    source: str
+    amount: float
+    player_id: str
+
+class PaycheckCreate(PaycheckBase):
+    pass
+
+class PaycheckUpdate(BaseModel):
+    source: Optional[str] = None
+    amount: Optional[float] = None
+    player_id: Optional[str] = None
+
+@app.post("/paychecks", status_code=201)
+def create_paycheck(paycheck: PaycheckCreate, db: Session = Depends(get_db)):
+    db_paycheck = models.Paycheck(**paycheck.dict())
+    db.add(db_paycheck)
+    db.commit()
+    db.refresh(db_paycheck)
+    return db_paycheck
+
+@app.get("/paychecks")
+def get_paychecks(db: Session = Depends(get_db)):
+    return db.query(models.Paycheck).all()
+
+@app.put("/paychecks/{paycheck_id}")
+def update_paycheck(paycheck_id: int, paycheck: PaycheckUpdate, db: Session = Depends(get_db)):
+    db_paycheck = db.query(models.Paycheck).filter(models.Paycheck.id == paycheck_id).first()
+    if not db_paycheck:
+        raise HTTPException(status_code=404, detail="Paycheck not found")
+    update_data = paycheck.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_paycheck, key, value)
+    db.commit()
+    db.refresh(db_paycheck)
+    return db_paycheck
+
+@app.delete("/paychecks/{paycheck_id}", status_code=204)
+def delete_paycheck(paycheck_id: int, db: Session = Depends(get_db)):
+    db_paycheck = db.query(models.Paycheck).filter(models.Paycheck.id == paycheck_id).first()
+    if not db_paycheck:
+        raise HTTPException(status_code=404, detail="Paycheck not found")
+    db.delete(db_paycheck)
+    db.commit()
+    return {"ok": True}
+
+@app.post("/bills", status_code=201)
+def create_bill(bill: BillCreate, db: Session = Depends(get_db)):
+    db_bill = models.Bill(**bill.dict())
+    db.add(db_bill)
+    db.commit()
+    db.refresh(db_bill)
+    return db_bill
+
+@app.put("/bills/{bill_id}")
+def update_bill(bill_id: int, bill: BillUpdate, db: Session = Depends(get_db)):
+    db_bill = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    if not db_bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    update_data = bill.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_bill, key, value)
+    db.commit()
+    db.refresh(db_bill)
+    return db_bill
+
+@app.delete("/bills/{bill_id}", status_code=204)
+def delete_bill(bill_id: int, db: Session = Depends(get_db)):
+    db_bill = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    if not db_bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    db.delete(db_bill)
+    db.commit()
+    return {"ok": True}
+
+
 @app.get("/bills")
 def get_bills(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
     """Retrieve all bills from the database."""
@@ -137,9 +231,10 @@ def get_bills(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
 
 
 @app.get("/payperiods/{pp_id}/summary")
-def payperiod_summary(pp_id: int) -> Dict[str, Any]:
-    """Return deterministic summary values and required pot keys without a DB."""
-    summary = summarize_payperiod(str(pp_id))
+def payperiod_summary(pp_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Return a real summary for a pay period based on data from the DB."""
+    bills = db.query(models.Bill).filter(models.Bill.pp == pp_id).all()
+    summary = summarize_payperiod(db=db, bills=bills)
     summary["pp_id"] = pp_id
     return summary
 

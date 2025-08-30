@@ -35,11 +35,17 @@ EXCLUDE_DIRS = {
     "node_modules", ".git", ".venv", "venv", "env",
     ".pytest_cache", ".mypy_cache", ".cache", "coverage",
     "dist", "build", ".next", "out", "target", "bin", "obj",
-    ".gemini", ".vscode", "secrets", "db", "systemInstructions_files", "__pycache__", ".devlogs"
+    ".gemini", ".vscode", "secrets", "db", "systemInstructions_files", "__pycache__", ".devlogs",
+    # Exclude troubleshooting and cloud quota helpers from snapshots by default
+    "tshoot_vertex", "gcloud_quota_check"
 }
 BINARY_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".webp", ".pdf", ".zip", ".tar", ".gz", ".tgz", ".exe", ".dll", ".so", ".class", ".jar", ".woff", ".woff2", ".eot", ".ttf", ".pyc", ".pyo", ".pyd", ".wasm"}
 LOCKFILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml"}
 SKIP_FILES = set(LOCKFILES)  # handled specially below
+
+# Include-only policy for CRA public assets: keep only minimal docs
+PUBLIC_DIR = ROOT / "autobudget_frontend" / "public"
+PUBLIC_INCLUDE_ONLY = {"index.html", "manifest.json"}
 
 # Extra sensitive filenames and globs to omit content for
 SKIP_BASENAMES = {
@@ -226,7 +232,19 @@ def main():
         out.write(build_tree_section(files, ROOT))
 
         for f in files:
+            # Skip most CRA public assets except minimal HTML/manifest
+            try:
+                if f.is_relative_to(PUBLIC_DIR) and f.name not in PUBLIC_INCLUDE_ONLY:
+                    continue
+            except AttributeError:
+                # Python < 3.9 fallback
+                if str(PUBLIC_DIR) in str(f.parent) and f.name not in PUBLIC_INCLUDE_ONLY:
+                    continue
+
             rel = f.relative_to(ROOT)
+            # Skip overly verbose aggregate docs that don't add signal
+            if rel.as_posix() == "docs/FullContext.md":
+                continue
             # Special case: lockfiles -> summary/omit
             if f.name == "package-lock.json":
                 out.write(f"## ./{rel}\n```\n")

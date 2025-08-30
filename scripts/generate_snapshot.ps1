@@ -3,6 +3,13 @@ param(
     [string]$Python = "python3"
 )
 
+# Fallback to 'python' if 'python3' isn't available on Windows
+if (-not (Get-Command $Python -ErrorAction SilentlyContinue)) {
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $Python = "python"
+    }
+}
+
 # Resolve the repository root as the parent of the scripts folder
 $repoRoot = Resolve-Path (Join-Path -Path $PSScriptRoot -ChildPath "..")
 Set-Location $repoRoot

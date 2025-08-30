@@ -45,7 +45,6 @@ const Bills = () => {
 
   const handleTogglePaid = (billId) => {
     const originalBills = [...bills];
-    // Optimistic update
     setBills((prevBills) =>
       prevBills.map((b) => (b.id === billId ? { ...b, paid: !b.paid } : b))
     );
@@ -54,15 +53,37 @@ const Bills = () => {
       .catch((err) => {
         console.error(`Error toggling paid status for bill ${billId}:`, err);
         setError("Failed to update bill status. Reverting change.");
-        setBills(originalBills); // Revert on error
+        setBills(originalBills);
       });
+  };
+
+  const handleDelete = (billId) => {
+    if (window.confirm('Are you sure you want to delete this bill?')) {
+      axios.delete(API(`/bills/${billId}`))
+        .then(() => {
+          fetchBills(); // Refresh list
+        })
+        .catch(err => {
+          console.error("Error deleting bill:", err);
+          setError('Failed to delete bill.');
+        });
+    }
+  };
+
+  const handleEdit = (bill) => {
+    // Placeholder for a future modal form
+    console.log("Editing bill:", bill);
+    alert(`Editing functionality for "${bill.name}" is not yet implemented.`);
   };
 
   return (
     <div>
-      <header className="mb-4">
-        <h2>All Bills</h2>
-        <p className="text-muted">A complete list of all your bills, color-coded by category.</p>
+      <header className="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+          <h2>All Bills</h2>
+          <p className="text-muted mb-0">A complete list of all your bills, color-coded by category.</p>
+        </div>
+        <button className="btn btn-primary">Add New Bill</button> {/* Placeholder for future modal */}
       </header>
 
       <StatusDisplay loading={loading} error={error} onDismiss={() => setError(null)} />
@@ -76,7 +97,7 @@ const Bills = () => {
                 <th>Amount</th>
                 <th>Due Day</th>
                 <th>Class</th>
-                <th className="text-center">Status</th>
+                <th className="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -97,12 +118,20 @@ const Bills = () => {
                       <span className="badge bg-secondary">{bill.bill_class}</span>
                     </td>
                     <td className="text-center">
-                      <button
-                        className={`btn btn-sm ${bill.paid ? "btn-outline-success" : "btn-primary"}`}
-                        onClick={() => handleTogglePaid(bill.id)}
-                      >
-                        {bill.paid ? "Paid" : "Mark Paid"}
-                      </button>
+                      <div className="btn-group btn-group-sm" role="group">
+                        <button
+                          className={`btn ${bill.paid ? "btn-outline-success" : "btn-success"}`}
+                          onClick={() => handleTogglePaid(bill.id)}
+                        >
+                          {bill.paid ? "Paid" : "Marked as Paid"}
+                        </button>
+                        <button className="btn btn-outline-secondary" onClick={() => handleEdit(bill)}>
+                          Edit
+                        </button>
+                        <button className="btn btn-outline-danger" onClick={() => handleDelete(bill.id)}>
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
