@@ -33,8 +33,15 @@ This entry documents the revert performed to restore repository hygiene. Future 
   - Verification: Restarted dev runner and observed that `/api/debts/snowball` no longer raises AttributeError in backend logs.
 
 - [2025-08-29] Snapshot generator tightened.
+
   - Files modified:
     - `scripts/generate_snapshot.py`: excluded `tshoot_vertex/`, `gcloud_quota_check/`; limited CRA `autobudget_frontend/public/` to `index.html` and `manifest.json`; skipped `docs/FullContext.md` in output; kept lockfile summarization.
     - `scripts/generate_snapshot.ps1`: added interpreter fallback from `python3` to `python` for Windows.
   - Rationale: Reduce noise and sensitive/irrelevant artifacts in agent-facing snapshots.
   - Verification: Script loads and completes locally (pending next run); no functional impact on app code.
+
+- [2025-08-29] Added snapshot alias wrappers.
+  - Files added:
+    - `scripts/gen.ps1` — PowerShell alias calling `generate_snapshot.ps1` with Python fallback.
+    - `scripts/gen.sh` — Bash alias calling `generate_snapshot.py` from repo root.
+  - Docs: Updated `scripts/README.md` to document usage. Fixed duplicate heading.

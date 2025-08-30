@@ -1,4 +1,24 @@
-# Stop scripts
+# Scripts
+
+## Snapshot (alias)
+
+- Windows PowerShell
+
+  - `scripts/gen.ps1`
+  - Alias wrapper for `generate_snapshot.ps1` (which calls `generate_snapshot.py`).
+  - Usage:
+    - `./scripts/gen.ps1`
+    - `./scripts/gen.ps1 -Python python` (force interpreter)
+
+- WSL/Linux/macOS
+  - `scripts/gen.sh`
+  - Alias wrapper for `scripts/generate_snapshot.py`.
+  - Usage:
+    - `bash ./scripts/gen.sh`
+
+---
+
+## Stop scripts
 
 - Windows PowerShell
 
